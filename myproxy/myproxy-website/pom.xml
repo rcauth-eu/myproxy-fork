@@ -144,7 +144,7 @@
                     <dependency>
                         <groupId>edu.uiuc.ncsa.maven.skin</groupId>
                         <artifactId>oa4mp-skin</artifactId>
-                        <version>3.3-SNAPSHOT</version>
+                        <version>3.4-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>

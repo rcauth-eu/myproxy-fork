@@ -182,7 +182,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
         @Override
         public OA2ServiceTransaction get(boolean createNewIdentifier) {
-            return new OA2ServiceTransaction(createNewId(createNewIdentifier));
+        	return new OA2ServiceTransaction(createNewId(createNewIdentifier));
         }
     }
 
@@ -290,7 +290,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
         @Override
         public OA2ServiceTransaction get(boolean createNewIdentifier) {
-            return new OA2ServiceTransaction(createNewId(createNewIdentifier));
+        	return new OA2ServiceTransaction(createNewId(createNewIdentifier));
         }
     }
 
