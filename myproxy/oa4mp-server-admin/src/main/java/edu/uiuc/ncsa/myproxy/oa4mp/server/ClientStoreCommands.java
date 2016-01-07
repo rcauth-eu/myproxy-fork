@@ -1,6 +1,7 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server;
 
 import edu.uiuc.ncsa.security.core.Identifiable;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.Store;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
@@ -108,47 +109,54 @@ public class ClientStoreCommands extends StoreCommands {
 
     @Override
     public void extraUpdates(Identifiable identifiable) {
-        getPublicKeyFile((Client)identifiable);
+        getPublicKeyFile((Client) identifiable);
     }
 
     @Override
-    public void update(Identifiable identifiable) {
+    public boolean update(Identifiable identifiable) {
+
         Client client = (Client) identifiable;
-        String input = null;
+
+        String newIdentifier = null;
+
         info("Starting client update for id = " + client.getIdentifierString());
         say("Update the values. A return accepts the existing or default value in []'s");
-        input = getInput("enter the identifier", client.getIdentifierString());
-        if (!input.equals(client.getIdentifierString())) {
-            sayi2(" remove client with id=\"" + client.getIdentifier() + "\" [y/n]? ");
-            if (isOk(readline())) {
-                getStore().remove(client.getIdentifier());
-                sayi(" client removed. Be sure to save any changes.");
-                info("Old client with id = " + client.getIdentifierString());
-            }
-            client.setIdentifier(BasicIdentifier.newID(input));
-        }
+
+        newIdentifier = getInput("enter the identifier", client.getIdentifierString());
+        boolean removeCurrentClient = false;
+        Identifier oldID = client.getIdentifier();
+
+        // no clean way to do this.
         client.setName(getInput("enter the name", client.getName()));
         client.setEmail(getInput("enter email", client.getEmail()));
         client.setErrorUri(getInput("enter error uri", client.getErrorUri()));
         client.setHomeUri(getInput("enter home uri", client.getHomeUri()));
         client.setProxyLimited(isOk(getInput("does this client require limited proxies?", client.isProxyLimited() ? "y" : "n")));
-        String secret = client.getSecret();
-        if (!isEmpty(secret)) {
-            secret = secret.substring(0, Math.min(25, secret.length())) + "...";
-        }
         // set file not found message.
         extraUpdates(client);
         sayi("here is the complete client:");
         longFormat(client);
+        if (!newIdentifier.equals(client.getIdentifierString())) {
+            sayi2(" remove client with id=\"" + client.getIdentifier() + "\" [y/n]? ");
+            removeCurrentClient = isOk(readline());
+            client.setIdentifier(BasicIdentifier.newID(newIdentifier));
+        }
         sayi2("save [y/n]?");
         if (isOk(readline())) {
-            getStore().save(client);
+            //getStore().save(client);
+            if (removeCurrentClient) {
+                info("removing client with id = " + oldID);
+                getStore().remove(client.getIdentifier());
+                sayi("client with id " + oldID + " removed. Be sure to save any changes.");
+            }
             sayi("client updated.");
-            info("Client with id "+ client.getIdentifierString() + " updates saved.");
-            return;
+            info("Client with id " + client.getIdentifierString() + " saving...");
+
+            return true;
         }
         sayi("client not updated, losing changes...");
         info("User terminated updates for client with id " + client.getIdentifierString());
+        return false;
     }
 
     protected void getPublicKeyFile(Client client) {
@@ -156,6 +164,9 @@ public class ClientStoreCommands extends StoreCommands {
         String fileNotFoundMessage = INDENT + "...uh-oh, I can't find that file. Please enter it again";
         String secret = client.getSecret();
 
+        if (!isEmpty(secret)) {
+            secret = secret.substring(0, Math.min(25, secret.length())) + "...";
+        }
         boolean askForFile = true;
         while (askForFile) {
             input = getInput("enter full path and file name of public key", secret);

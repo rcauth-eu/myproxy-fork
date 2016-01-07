@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy;
 
+import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -167,6 +168,11 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
         @Override
         public void setIdentifier(Identifier identifier) {
             this.identifier = identifier;
+        }
+
+        @Override
+        public Identifiable clone() {
+            return null;
         }
     } //end inner class
 

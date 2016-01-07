@@ -51,7 +51,7 @@ public class ClientApprovalStoreCommands extends StoreCommands {
     }
 
     @Override
-    public void update(Identifiable identifiable) {
+    public boolean update(Identifiable identifiable) {
         ClientApproval clientApproval = (ClientApproval) identifiable;
         info("Starting update for client approval id=" + identifiable.getIdentifierString());
         sayi("Enter the information for the client approval");
@@ -59,15 +59,12 @@ public class ClientApprovalStoreCommands extends StoreCommands {
         clientApproval.setApproved(isOk(getInput("set approved?", clientApproval.isApproved() ? "y" : "n")));
         sayi("save changes [y/n]?");
         if (isOk(readline())) {
-            getStore().save(clientApproval);
-            sayi("approval saved");
-            info("Approval update saved for id=" + clientApproval.getIdentifierString());
             say(clientApproval.toString());
-            return;
+            return true;
         }
         sayi("save cancelled");
         info("Approval update cancelled for id=" + clientApproval.getIdentifierString());
-
+                       return false;
     }
 
     protected void showApproveHelp() {
