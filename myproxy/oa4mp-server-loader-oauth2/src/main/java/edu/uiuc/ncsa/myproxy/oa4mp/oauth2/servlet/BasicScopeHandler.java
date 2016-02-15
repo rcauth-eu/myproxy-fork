@@ -5,6 +5,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.server.ScopeHandler;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 
 /**
@@ -30,6 +31,19 @@ public class BasicScopeHandler implements ScopeHandler {
     @Override
     public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException {
         // Plain vanilla just gets the sub field and returns it.
+        return userInfo;
+    }
+
+    /**
+     * This also just returns the {@link UserInfo} object passed in.
+     * @param userInfo
+     * @param request
+     * @param transaction
+     * @return
+     * @throws UnsupportedScopeException
+     */
+    @Override
+    public UserInfo process(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) throws UnsupportedScopeException {
         return userInfo;
     }
 
