@@ -16,10 +16,9 @@ OAuth for MyProxy
     passwords to science gateways. Instead, gateway users authenticate to their MyProxy server's OAuth web interface to
     approve issuance of a certificate by MyProxy to the science gateway they are using.
 
-    OAuth for MyProxy now support a subset of the OAuth2.0 protocol based on Open ID Connect. Since OA4MP is
-    written to its own abstraction layer, most of the differences in implementation between the versions of
-    OAuth are hidden from you. You really don't need to know too much about them. As such, any OAuth 2 specific
-    features will be clearly noted.
+    OAuth for MyProxy now support a subset of the OAuth 2.0 protocol based on Open ID Connect (OIDC). OIDC
+    specific features will be pointed out as needed. Note that as of release 3.2, OIDC is the preferred way to
+    connect to CILogon and for use by Globus.
 
 Downloads
 
