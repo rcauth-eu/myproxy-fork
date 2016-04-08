@@ -64,6 +64,7 @@
         <module>oa4mp-webapp</module>
         <module>oa4mp-server-admin</module>
         <module>oa4mp-xsede</module>
+        <module>oa4mp-xsede-oauth2</module>
         <module>oa4mp-twofactor</module>
         <module>oa4mp-oidc-twofactor</module>
         <module>oa4mp-website</module>
