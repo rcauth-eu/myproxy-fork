@@ -2,6 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.UnknownClientException;
+import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.ExceptionWrapper;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
@@ -24,6 +25,17 @@ import java.net.URLEncoder;
  * on 2/12/15 at  3:16 PM
  */
 public class OA2ExceptionHandler implements ExceptionHandler {
+    MyLoggingFacade logger;
+
+    @Override
+    public MyLoggingFacade getLogger() {
+        return logger;
+    }
+
+    public OA2ExceptionHandler(MyLoggingFacade logger) {
+        this.logger = logger;
+    }
+
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if(t instanceof ExceptionWrapper){

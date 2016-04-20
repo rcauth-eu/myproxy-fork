@@ -31,5 +31,7 @@ public interface MyProxyConnectable extends Cacheable{
      */
     public LinkedList<X509Certificate> getCerts(MyPKCS10CertRequest pkcs10CertRequest);
 
+    public LinkedList<X509Certificate> getCerts(byte[] pkcs10CertRequest);
+
     public void setLifetime(long certLifetime);
 }

@@ -22,17 +22,15 @@ import java.util.StringTokenizer;
  * on 2/12/15 at  1:16 PM
  */
 public class OA2ClientExceptionHandler extends ClientExceptionHandler {
-    MyLoggingFacade logger;
 
     public OA2ClientExceptionHandler(ClientServlet clientServlet, MyLoggingFacade myLogger) {
-        super(clientServlet);
-        this.logger = myLogger;
+        super(clientServlet, myLogger);
     }
 
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if (t instanceof OA2RedirectableError) {
-            logger.info("get a standard error with a redirect");
+            getLogger().info("get a standard error with a redirect");
             OA2RedirectableError oa2RedirectableError = (OA2RedirectableError) t;
             request.setAttribute(OA2Constants.ERROR, oa2RedirectableError.getError());
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, oa2RedirectableError.getDescription());
@@ -45,7 +43,7 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
             // error_description=...
             // separated by a line feed.
             ServiceClientHTTPException tt = (ServiceClientHTTPException) t;
-            logger.info("got standard error with http status code = " + tt.getStatus());
+            getLogger().info("got standard error with http status code = " + tt.getStatus());
 
             if (!tt.hasContent()) {
                 // can't do anything
@@ -60,7 +58,7 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
         } else {
             // fall through. We got some exception from someplace and have to manage it.
             // This is really last ditch.
-            logger.info("Got exception of type " + t.getClass().getSimpleName());
+            getLogger().info("Got exception of type " + t.getClass().getSimpleName());
             t.printStackTrace(); // again, something is wrong, possibly with the configuration so more info is better.
             request.setAttribute(OA2Constants.ERROR, t.getClass().getSimpleName());
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, t.getMessage());
@@ -100,7 +98,7 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
             hasValidContent = true;
         }
         if (!hasValidContent) {
-            logger.warn("Body or error was not parseable");
+            getLogger().warn("Body or error was not parseable");
             throw new GeneralException();
         }
     }

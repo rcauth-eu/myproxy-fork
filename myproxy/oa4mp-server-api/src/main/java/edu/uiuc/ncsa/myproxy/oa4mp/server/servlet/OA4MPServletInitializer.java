@@ -31,7 +31,7 @@ public class OA4MPServletInitializer implements Initialization {
     @Override
     public ExceptionHandler getExceptionHandler() {
         if (exceptionHandler == null) {
-            exceptionHandler = new OA4MPExceptionHandler();
+            exceptionHandler = new OA4MPExceptionHandler(getEnvironment().getMyLogger());
         }
         return exceptionHandler;
     }
@@ -101,7 +101,7 @@ public class OA4MPServletInitializer implements Initialization {
                 MyProxyDelegationServlet.myproxyConnectionCache = myproxyConnectionCache; // set it in the servlet
             }
             myproxyConnectionCleanup.setMap(myproxyConnectionCache);
-            myproxyConnectionCleanup.addRetentionPolicy(new ValidTimestampPolicy(10000L));
+            myproxyConnectionCleanup.addRetentionPolicy(new ValidTimestampPolicy());
             myproxyConnectionCleanup.start();
             logger.info("Starting myproxy connection cache cleanup thread");
         }

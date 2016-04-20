@@ -18,7 +18,7 @@ public class OA2ServletInitializer extends OA4MPServletInitializer {
     @Override
     public ExceptionHandler getExceptionHandler() {
         if(exceptionHandler == null){
-            exceptionHandler = new OA2ExceptionHandler();
+            exceptionHandler = new OA2ExceptionHandler(getEnvironment().getMyLogger());
         }
         return exceptionHandler;
     }

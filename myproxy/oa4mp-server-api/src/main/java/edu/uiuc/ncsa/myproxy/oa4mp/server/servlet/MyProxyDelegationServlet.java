@@ -32,7 +32,6 @@ import edu.uiuc.ncsa.security.storage.sql.SQLStore;
 import edu.uiuc.ncsa.security.util.mail.MailUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyPairPopulationThread;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
@@ -313,67 +312,6 @@ public abstract class MyProxyDelegationServlet extends AbstractServlet implement
     @Override
     public void postprocess(TransactionState state) throws Throwable {
     }
-
-    /**
-     * The server generates a redirect suitable for consumption by the ErrorServlet.
-     * The client will also parse the redirect in case there is no error handler on the server.
-     * This is currently a beta feature only.
-     *
-     * @param t
-     * @param request
-     * @param response
-     * @throws IOException
-     * @throws ServletException
-     */
-   /* protected void setRedirect(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (isDebugOn()) {
-            t.printStackTrace();
-        }
-        String x = ((AddressableServer) getServiceEnvironment().getAgIssuer()).getAddress().toString();
-        if (!x.endsWith("/")) {
-            x = x + "/";
-        }
-        response.setHeader("X-Frame-Options", "DENY");
-        Throwable cause = t;
-        Client client = null;
-        String identifier = "";
-
-        if (t instanceof ExceptionWrapper) {
-            ExceptionWrapper ew = (ExceptionWrapper) t;
-            cause = ew.getCause();
-            client = ew.getClient();
-            if (client.getIdentifier() != null) {
-                identifier = client.getIdentifierString();
-            }
-        }
-        String causeName = cause.getClass().getSimpleName();
-        String message = URLEncoder.encode(cause.getMessage(), "UTF-8");
-        // unknown or unapproved client exceptions are thrown before any other exceptions. These
-        // contain the identifier which is available no other way, so these are handled as special cases.
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream printStream = new PrintStream(baos);
-        cause.printStackTrace(printStream);
-        printStream.flush();
-        printStream.close();
-        String stackTrace = Base64.encodeBase64URLSafeString(baos.toByteArray());
-        if ((cause instanceof UnknownClientException) || cause instanceof UnapprovedClientException) {
-            throw (GeneralException) cause;
-        }
-        response.sendRedirect(x + "error"
-                + "?" + ErrorServlet.CAUSE + "=" + causeName
-                + "&" + ErrorServlet.IDENTIFIER + "=" + identifier
-                + "&" + ErrorServlet.STACK_TRACE + "=" + stackTrace
-                + "&" + ErrorServlet.MESSAGE + "=" + message);
-
-    }
-
-    protected void fireExceptionCaught(Throwable throwable, Map<String, String> state) {
-        for (NotificationListener notificationListener : notificationListeners) {
-            if (notificationListener instanceof ExceptionEventListener) {
-                ((ExceptionEventListener) notificationListener).fireExceptionCaught(new ExceptionEvent(this, throwable, state));
-            }
-        }
-    }*/
 
 
     protected boolean hasMPConnection(Identifier identifier) {

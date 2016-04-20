@@ -94,7 +94,7 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
                 if (myProxyLogon.getLifetime() != newLifetime) {
                     // only go to the trouble of resetting this and re-acquiring the connection if there is a change.
                     myProxyLogon.setLifetime(newLifetime);
-                    if (myProxyLogon.isLoggedOn()) {
+                    if (myProxyLogon.isConnected()) {
                         close();
                         open();
                     }
@@ -108,7 +108,9 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
         @Override
         public void close() {
             try {
-                myProxyLogon.disconnect();
+                if (myProxyLogon.isConnected()) {
+                    myProxyLogon.disconnect();
+                }
             } catch (Throwable e) {
                 throw new ConnectionException("Error: disconnecting from myproxy", e);
             }
@@ -127,29 +129,33 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
 
         @Override
         public String toString() {
-            String out =  getClass().getSimpleName() + "[";
-            if(myProxyLogon == null){
+            String out = getClass().getSimpleName() + "[";
+            if (myProxyLogon == null) {
                 out = out + "(no myproxy logon)";
-            }else {
+            } else {
                 out = out + "lifetime=" + myProxyLogon.getLifetime() +
                         ", port=" + myProxyLogon.getPort() +
-                        ", host="+ myProxyLogon.getHost();
+                        ", host=" + myProxyLogon.getHost();
             }
-              return out + "]";
+            return out + "]";
         }
 
-        @Override
-        public LinkedList<X509Certificate> getCerts(MyPKCS10CertRequest pkcs10CertRequest) {
+        public LinkedList<X509Certificate> getCerts(byte[] pkcs10CertRequest) {
             try {
-                myProxyLogon.getCredentials(pkcs10CertRequest.getEncoded());
+                myProxyLogon.getCredentials(pkcs10CertRequest);
                 LinkedList<X509Certificate> certList = new LinkedList<X509Certificate>();
                 certList.addAll(myProxyLogon.getCertificates());
                 return certList;
             } catch (Throwable e) {
-                System.err.println(getClass().getSimpleName() + ".getCerts: failed!");
                 e.printStackTrace();
                 throw new GeneralException("Error: getting certs from myproxy", e);
             }
+
+        }
+
+        @Override
+        public LinkedList<X509Certificate> getCerts(MyPKCS10CertRequest pkcs10CertRequest) {
+            return getCerts(pkcs10CertRequest.getEncoded());
         }
 
         Identifier identifier;

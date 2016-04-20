@@ -4,6 +4,7 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
 import edu.uiuc.ncsa.security.core.exceptions.UnknownClientException;
 import edu.uiuc.ncsa.security.core.util.HostUtil;
+import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.servlet.ExceptionHandler;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
@@ -22,6 +23,17 @@ import java.net.UnknownHostException;
  * on 2/6/15 at  4:56 PM
  */
 public class OA4MPExceptionHandler implements ExceptionHandler {
+    MyLoggingFacade logger;
+
+    @Override
+    public MyLoggingFacade getLogger() {
+        return logger;
+    }
+
+    public OA4MPExceptionHandler(MyLoggingFacade logger) {
+        this.logger = logger;
+    }
+
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         // these get kicked back to the client asap, since we can't really say much else.
