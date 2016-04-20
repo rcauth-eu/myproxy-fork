@@ -17,7 +17,7 @@
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <!-- Need this for the monitor -->
         <dependency>
