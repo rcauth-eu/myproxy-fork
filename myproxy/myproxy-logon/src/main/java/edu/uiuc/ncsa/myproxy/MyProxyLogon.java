@@ -664,17 +664,13 @@ public class MyProxyLogon {
 
     public void getCredentials(byte[] derEncodedCertRequest) throws IOException, GeneralSecurityException {
         try {
-            System.err.println(getClass().getSimpleName() + ".getCreds: *debug* derEncodedRequest length=" + derEncodedCertRequest.length);
 
             if (this.state != State.LOGGEDON) {
-                System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  MyProxy not logged on. Logging on.");
                 this.logon();
-                System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  MyProxy logon successful.");
             }
 
             this.socketOut.write(derEncodedCertRequest);
             this.socketOut.flush();
-            System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  Request written, output socket flushed.");
 
             //look ahead for returned errors instead of certificates
             this.socketIn = lookAheadErrorChecker(socketIn);
@@ -688,9 +684,6 @@ public class MyProxyLogon {
                 System.err.println(Integer.toString(numCertificates));
                 throw new GeneralSecurityException("Error: bad number of certificates sent by server");
             }
-            
-            System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  Returned number of certificates : " + numCertificates);
-
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             this.certificateChain = (Collection<X509Certificate>) certFactory.generateCertificates(this.socketIn);
             this.state = State.DONE;
@@ -1022,7 +1015,8 @@ public class MyProxyLogon {
         return this.state == State.READY;
     }
     public boolean isConnected(){
-        return this.state == State.CONNECTED;
+        //  Cannot be logged on unless connected, so this should check both.
+        return (this.state == State.CONNECTED) || (this.state == State.LOGGEDON);
     }
     public boolean isLoggedOn(){
         return this.state == State.LOGGEDON;

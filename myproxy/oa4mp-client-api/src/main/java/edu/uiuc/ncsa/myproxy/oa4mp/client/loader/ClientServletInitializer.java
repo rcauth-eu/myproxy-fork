@@ -24,7 +24,7 @@ public class ClientServletInitializer implements Initialization {
     @Override
     public ExceptionHandler getExceptionHandler() {
         if((exceptionHandler == null)){
-            exceptionHandler = new ClientExceptionHandler((ClientServlet) getServlet());
+            exceptionHandler = new ClientExceptionHandler((ClientServlet) getServlet(), getEnvironment().getMyLogger());
         }
         return exceptionHandler;
     }

@@ -118,7 +118,7 @@
       -->
 
 
-    <security-constraint>
+  <!--  <security-constraint>
         <web-resource-collection>
             <web-resource-name>portalSecurity</web-resource-name>
             <url-pattern>/*</url-pattern>
@@ -129,8 +129,12 @@
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
     </security-constraint>
-
-  <!--  <security-constraint>
+-->
+    <!--
+       Uncomment the next section if you are replacing the built-in authorization module with your own.
+       Look here for the details: http://grid.ncsa.illinois.edu/myproxy/oauth/server/manuals/remote-user.xhtml
+    -->
+<!--   <security-constraint>
       <web-resource-collection>
         <web-resource-name>OAuth Security</web-resource-name>
         <url-pattern>/authorize</url-pattern>

@@ -5,7 +5,7 @@
                   http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          version="2.5">
 
-    <display-name>XSEDE OAuth for MyProxy</display-name>
+    <display-name>Twofactor OAuth for MyProxy</display-name>
     <!--what gets put in the browser's title bar -->
     <servlet>
         <servlet-name>initiate</servlet-name>

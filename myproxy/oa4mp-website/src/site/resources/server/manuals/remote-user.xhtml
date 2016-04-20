@@ -30,10 +30,11 @@
 
 <p>Oauth for MyProxy (OA4MP) supports Apache- and Tomcat-based authentication. This document provides a walk-through of
     two Apache methods, basic and Shibboleth, and Tomcat basic authentication. Apache and Tomcat provide a number of
-    other authentication methods, but anything using the REMOTE_USER header should work with OA4MP.</p>
+    other authentication methods, but anything using the REMOTE_USER variable should work with OA4MP.</p>
 
-<p>Since only effectively the user name can be sent to the authorization servlet, another requirement is that
-    the client have a certificate with the Myproxy server so that passwords are not needed.</p>
+<p>Since only effectively the user name can be sent to the authorization servlet, <b>another requirement is that
+    the client have a certificate with the Myproxy server so that passwords are not needed.</b>. Said more plainly,
+    if this is enabled and required, no password will be sent to the MyProxy server.</p>
 
 <p>Tomcat can either run standalone, or it can run behind the HTTP server. For the Apache-based methods, it will need to
     run behind HTTP. For Tomcat-based authentication, it can run standalone.</p>

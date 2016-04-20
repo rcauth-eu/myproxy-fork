@@ -94,6 +94,7 @@ public class OA2ClientCommands extends ClientStoreCommands {
         String input;
         boolean askForSecret = true;
 
+
         while (askForSecret) {
             input = getInput("enter a new secret or return to skip.", secret);
             if (isEmpty(input)) {

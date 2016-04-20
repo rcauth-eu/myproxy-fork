@@ -11,14 +11,13 @@ import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 import edu.uiuc.ncsa.security.servlet.Presentable;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
-import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.List;
+import java.util.Enumeration;
 import java.util.Map;
 
 import static edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceConstantKeys.TOKEN_KEY;
@@ -102,6 +101,7 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
     }
 
     public static String INITIAL_PAGE = "/authorize-init.jsp";
+    public static String REMOTE_USER_INITIAL_PAGE = "/authorize-remote-user.jsp";
     public static String OK_PAGE = "/authorize-ok.jsp";
     public static String ERROR_PAGE = "/authorize-error.jsp";
 
@@ -114,6 +114,8 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
                 String initPage = INITIAL_PAGE;
                 info("*** STARTING present");
                 if (getServiceEnvironment().getAuthorizationServletConfig().isUseHeader()) {
+                    initPage = REMOTE_USER_INITIAL_PAGE;
+
                     info("*** PRESENT: Use headers enabled.");
                     String x = null;
                     if (getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName().equals("REMOTE_USER")) {
@@ -209,6 +211,7 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
                     return;
 
                 } catch (ConnectionException ce) {
+                    ce.printStackTrace();
                     request.setAttribute(RETRY_MESSAGE, getServiceEnvironment().getMessages().get(RETRY_MESSAGE));
                     pState.setState(AUTHORIZATION_ACTION_START);
                     prepare(pState);
@@ -259,27 +262,33 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         String password = null;
         // Fixes OAUTH-192.
         if (getServiceEnvironment().getAuthorizationServletConfig().isUseHeader()) {
+            String headerName = getServiceEnvironment().getAuthorizationServletConfig().getHeaderFieldName();
+            if (isEmpty(headerName) || headerName.toLowerCase().equals("remote_user")) {
+                userName = request.getRemoteUser();
+            } else {
+                Enumeration enumeration = request.getHeaders(headerName);
+                if (!enumeration.hasMoreElements()) {
+                    throw new GeneralException("Error: A custom header of \"" + headerName + "\" was specified for authorization, but no value was found.");
+                }
+                userName = enumeration.nextElement().toString();
+                if (enumeration.hasMoreElements()) {
+                    throw new GeneralException("Error: A custom header of \"" + headerName + "\" was specified for authorization, but multiple values were found.");
+                }
+            }
             if (getServiceEnvironment().getAuthorizationServletConfig().isRequireHeader()) {
-                List<String> headers = getAuthHeader(request, "Basic");
-                if (!headers.isEmpty()) {
-                    // In some cases (such as Shibboleth) no password is returned this way. That's fine and
-                    // pre-supposed a trust relationship with the MyProxy server. In other cases
-                    // (such as tomcat), try to get the password from the basic auth header.
-                    byte[] rawPassword = Base64.decodeBase64(headers.get(0));
-                    password = new String(rawPassword);
-                    // Tomcat standard is to send along any password as username:password base 64 encoded.
-                    password = password.substring(password.indexOf(":") + 1);
-
-                } else {
-                    userName = request.getParameter(AUTHORIZATION_USER_NAME_KEY);
-                    password = request.getParameter(AUTHORIZATION_PASSWORD_KEY);
-                    trans.setUsername(userName);
-
+                if (isEmpty(userName)) {
+                    warn("Headers required, but none found.");
+                    throw new GeneralException("Headers required, but none found.");
                 }
             } else {
+                // So the score card is that the header is not required though use it if there for the username
+                if (isEmpty(userName)) {
+                    userName = request.getParameter(AUTHORIZATION_USER_NAME_KEY);
+                }
+                trans.setUsername(userName);
             }
-        }else{
-
+        } else {
+            // Headers not used, just pull it off the form the user POSTs.
             userName = request.getParameter(AUTHORIZATION_USER_NAME_KEY);
             password = request.getParameter(AUTHORIZATION_PASSWORD_KEY);
             trans.setUsername(userName);
@@ -295,9 +304,10 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
 
         createMPConnection(trans.getIdentifier(), userName, password, trans.getLifetime());
         // Change is to close this connection after verifying it works.
-        getMPConnection(trans.getIdentifier()).close();
-        // Depending on the control flow, the next call may or may not require a connection to be re-opened.
-        doRealCertRequest(trans, statusString);
+        doRealCertRequest(trans, statusString); // Oauth 1 will get the cert, OAuth 2 will do nothing here, getting the cert later.
+        if (hasMPConnection(trans.getIdentifier())) {
+            getMPConnection(trans.getIdentifier()).close();
+        }
         debug("4.a. verifier = " + trans.getVerifier() + ", " + statusString);
         String cb = createCallback(trans, getFirstParameters(request));
         info("4.a. starting redirect to " + cb + ", " + statusString);

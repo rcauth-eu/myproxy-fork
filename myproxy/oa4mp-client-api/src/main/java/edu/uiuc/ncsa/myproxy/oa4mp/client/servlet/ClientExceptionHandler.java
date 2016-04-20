@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.client.servlet;
 
+import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.servlet.ExceptionHandler;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
@@ -13,9 +14,17 @@ import java.io.IOException;
  * on 2/9/15 at  12:01 PM
  */
 public class ClientExceptionHandler implements ExceptionHandler {
+    MyLoggingFacade logger;
+
+    @Override
+    public MyLoggingFacade getLogger() {
+        return logger;
+    }
+
     protected ClientServlet clientServlet;
 
-    public ClientExceptionHandler(ClientServlet clientServlet) {
+    public ClientExceptionHandler(ClientServlet clientServlet, MyLoggingFacade logger) {
+        this.logger = logger;
         this.clientServlet = clientServlet;
     }
 
