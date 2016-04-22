@@ -5,7 +5,6 @@ import edu.uiuc.ncsa.security.util.cli.CLIDriver;
 import edu.uiuc.ncsa.security.util.cli.CommonCommands;
 import edu.uiuc.ncsa.security.util.cli.ConfigurableCommandsImpl;
 import edu.uiuc.ncsa.security.util.cli.InputLine;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -33,18 +32,6 @@ public abstract class BaseCommands extends ConfigurableCommandsImpl {
         return OA4MPConfigTags.COMPONENT;
     }
 
-    /**
-     * This will take a String and append the correct number of blanks on the
-     * left so it is the right width. This is used for making the banner.
-     *
-     * @param x
-     * @param width
-     * @return
-     */
-    protected String padLineWithBlanks(String x, int width) {
-        String xx = StringUtils.rightPad(x, width, " ");
-        return xx;
-    }
 
     protected void start(String[] args) throws Exception {
         if (!getOptions(args)) {
@@ -65,28 +52,25 @@ public abstract class BaseCommands extends ConfigurableCommandsImpl {
         return new ClientApprovalStoreCommands(getMyLogger(), "  ", getServiceEnvironment().getClientApprovalStore());
     }
 
+    @Override
     public boolean use(InputLine inputLine) throws Exception {
-        if (showHelp(inputLine)) {
-            useHelp();
-            return true;
-        }
-        if (1 == inputLine.size()) {
-            say("Sorry, you need to give the name of the component to invoke it.");
-            return true;
-        }
-        CommonCommands storeCommands = null;
+        CommonCommands commands = null;
         if (inputLine.hasArg(CLIENTS)) {
-            storeCommands = getNewClientStoreCommands();
+            commands = getNewClientStoreCommands();
         }
         if (inputLine.hasArg(CLIENT_APPROVALS)) {
-            storeCommands = getNewClientApprovalStoreCommands();
+            commands = getNewClientApprovalStoreCommands();
         }
         if (inputLine.hasArg(COPY)) {
-            storeCommands = getNewCopyCommands();
+            commands = getNewCopyCommands();
         }
-        if (storeCommands != null) {
-            CLIDriver cli = new CLIDriver(storeCommands);
+        if (commands != null) {
+            CLIDriver cli = new CLIDriver(commands);
             cli.start();
+            return true;
+        }
+
+        if (super.use(inputLine)) {
             return true;
         }
 
@@ -118,21 +102,22 @@ public abstract class BaseCommands extends ConfigurableCommandsImpl {
 
 
     protected boolean executeComponent() throws Exception {
-          if (hasOption(USE_COMPONENT_OPTION, USE_COMPONENT_LONG_OPTION)) {
-              String component = getCommandLine().getOptionValue(USE_COMPONENT_OPTION);
-              if (component != null && 0 < component.length()) {
-                  if (!hasComponent(component)) {
-                      say("Unknown component name of \"" + component + "\". ");
-                      return false;
-                  }
-                  runComponent(component);
-                  return true;
-              } else {
-                  say("Caution, you specified using a component, but did not specify what the component is.");
-              }
-          }
-          return false;
-      }
+        if (hasOption(USE_COMPONENT_OPTION, USE_COMPONENT_LONG_OPTION)) {
+            String component = getCommandLine().getOptionValue(USE_COMPONENT_OPTION);
+            if (component != null && 0 < component.length()) {
+                if (!hasComponent(component)) {
+                    say("Unknown component name of \"" + component + "\". ");
+                    return false;
+                }
+                runComponent(component);
+                return true;
+            } else {
+                say("Caution, you specified using a component, but did not specify what the component is.");
+            }
+        }
+        return false;
+    }
+
     public void useHelp() {
         say("Choose the component you wish to use.");
         say("you specify the component as use + name. Supported components are");

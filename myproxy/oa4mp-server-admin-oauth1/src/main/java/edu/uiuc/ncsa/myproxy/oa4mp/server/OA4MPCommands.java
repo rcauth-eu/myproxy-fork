@@ -4,7 +4,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.loader.OA4MPConfigurationLoader;
 import edu.uiuc.ncsa.security.core.util.AbstractEnvironment;
 import edu.uiuc.ncsa.security.core.util.ConfigurationLoader;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
-import edu.uiuc.ncsa.security.delegation.servlet.LoggingConfigLoader;
+import edu.uiuc.ncsa.security.core.util.LoggingConfigLoader;
 import edu.uiuc.ncsa.security.util.cli.CLIDriver;
 import org.apache.commons.lang.StringUtils;
 

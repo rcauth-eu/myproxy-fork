@@ -113,7 +113,7 @@ public class TestUtils {
 
                 }
             } else {
-                throw new MyConfigurationException("Error:No configuration found.");
+                throw new MyConfigurationException("Error:No configuration file found.");
 
             }
             ConfigurationNode cn = null;
@@ -122,7 +122,7 @@ public class TestUtils {
                 // try to find a specified configuration.
                 String cfgName = System.getProperty(getBootstrapper().getOa4mpConfigNameKey());
                 if (cfgName == null) {
-                    System.out.println("no named for a configuration given");
+                    System.out.println("no name for a configuration given");
                     cn = cfg.configurationAt(COMPONENT).getRootNode();
 
                 } else {
