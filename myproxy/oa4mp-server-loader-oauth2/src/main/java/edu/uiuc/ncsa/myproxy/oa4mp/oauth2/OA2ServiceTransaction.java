@@ -97,6 +97,14 @@ public class OA2ServiceTransaction extends OA4MPServiceTransaction {
     }
 
     @Override
+    public String toString() {
+        String x = super.toString();
+        x = x.substring(0,x.length()-1);
+        x = x + ",refresh token="+getRefreshToken() + "]";
+        return x;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         boolean rc = super.equals(obj);
         if (!rc) return false;

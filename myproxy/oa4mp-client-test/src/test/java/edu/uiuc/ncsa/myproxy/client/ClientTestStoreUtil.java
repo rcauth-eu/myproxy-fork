@@ -112,7 +112,7 @@ public class ClientTestStoreUtil {
 
     public static ConnectionPool setupMySQLConnection(String databaseName, String schema) {
         if (System.getProperty("oa4mp:mysql:username") == null || System.getProperty("oa4mp:mysql:password") == null) {
-            System.out.println("NOTE: You must set the username and password as properties for the PGStore test. Aborting...");
+            System.out.println("NOTE: You must set the username and password as properties for the MySQLStore test. Aborting...");
             return null;
         }
         AssetProvider ap = new AssetProvider();

@@ -51,7 +51,7 @@ NOTE: the tests below are commented out so this runs from the command line with 
 which includes CILogon.
  */
 @Suite.SuiteClasses({
-        TokenTest.class,
+        TokenTest2.class,
         AGClientTest.class,
         AGCAStoreTest.class,
    //     AGTransactionStoreTest.class,

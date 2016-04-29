@@ -45,6 +45,7 @@ public class FSAssetStore extends FileStore<Asset> implements AssetStore {
         }
     }
 
+
     @Override
     public Asset getByToken(Identifier token) {
         return  getIndexEntry(token.toString());
@@ -55,6 +56,7 @@ public class FSAssetStore extends FileStore<Asset> implements AssetStore {
         realSave(false, asset); // just save this which updates the index.
     }
 
+/*
     @Override
     public boolean delete(String identifier) {
         Asset t = (Asset) loadByIdentifier(identifier);
@@ -64,4 +66,5 @@ public class FSAssetStore extends FileStore<Asset> implements AssetStore {
         }
         return rc;
     }
+*/
 }

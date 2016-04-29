@@ -29,23 +29,34 @@ public class OA2FSTStore<V extends OA2ServiceTransaction> extends DSFSTransactio
         return getIndexEntry(refreshToken.getToken());
     }
 
-
+    @Override
+    public V realRemove(V thingie) {
+        super.realRemove(thingie);
+        if (thingie.getRefreshToken() != null) {
+            removeIndexEntry(thingie.getRefreshToken().getToken());
+        }
+        if(thingie.getUsername() != null){
+            removeIndexEntry(thingie.getUsername());
+        }
+        return thingie;
+    }
 
     @Override
     public void realSave(boolean checkExists, V t) {
-         super.realSave(checkExists, t);
-         try {
-             if (t.hasRefreshToken()) {
-                 createIndexEntry(t.getRefreshToken().getToken(), t.getIdentifierString());
-             }
-             if(t.getUsername() != null){
-                 createIndexEntry(t.getUsername(), t.getIdentifierString());
-             }
-         } catch (IOException e) {
-             throw new GeneralException("Error serializing item " + t + "to file ");
-         }
-     }
+        super.realSave(checkExists, t);
+        try {
+            if (t.hasRefreshToken()) {
+                createIndexEntry(t.getRefreshToken().getToken(), t.getIdentifierString());
+            }
+            if (t.getUsername() != null) {
+                createIndexEntry(t.getUsername(), t.getIdentifierString());
+            }
+        } catch (IOException e) {
+            throw new GeneralException("Error serializing item " + t + "to file ");
+        }
+    }
 
+/*
     @Override
     public boolean delete(String identifier) {
         V t = (V) loadByIdentifier(identifier);
@@ -53,15 +64,16 @@ public class OA2FSTStore<V extends OA2ServiceTransaction> extends DSFSTransactio
         if (t.hasRefreshToken()) {
             removeIndexEntry(t.getRefreshToken().getToken());
         }
-        if(t.getUsername() != null){
+        if (t.getUsername() != null) {
             removeIndexEntry(t.getUsername());
         }
-       return rc;
+        return rc;
 
     }
+*/
 
     @Override
     public V getByUsername(String username) {
-                return getIndexEntry(username);
+        return getIndexEntry(username);
     }
 }

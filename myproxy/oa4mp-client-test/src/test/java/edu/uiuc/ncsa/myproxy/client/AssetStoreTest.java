@@ -13,6 +13,8 @@ import org.junit.Test;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.util.ArrayList;
 
 /**
  * Basic testing of the asset store implementations.
@@ -40,6 +42,7 @@ public class AssetStoreTest extends TestCase {
 
     }
 
+
     /**
      * This returns an asset so subclasses can add their own tests for extensions to the asset.
      *
@@ -47,50 +50,65 @@ public class AssetStoreTest extends TestCase {
      * @return
      * @throws Exception
      */
-    public Asset storeTest(AssetStore store) throws Exception {
+    public void storeTest(AssetStore store) throws Exception {
+
         if (store == null) {
             System.out.println("WARNING: no asset store configured, skipping test.");
-            return null;
+            return;
         }
-        Identifier id = BasicIdentifier.newID("asset:id:/" + System.currentTimeMillis());
-
-        Asset asset = store.create();
-        asset.setIdentifier(id);
-        assert asset != null : "Error: The store is not producing valid assets when requested. A null was returned";
+        int count  = 10;
+        ArrayList<Asset> assets = new ArrayList<>();
+        SecureRandom secureRandom = new SecureRandom();
+        long l = secureRandom.nextLong();
+        String r = Long.toHexString(l);
         KeyPair kp = KeyUtil.generateKeyPair();
         PrivateKey privateKey = kp.getPrivate();
         MyPKCS10CertRequest cr = CertUtil.createCertRequest(kp);
         String rawCR = CertUtil.fromCertReqToString(cr);
-        String username = "testUser";
-        URI redirect = URI.create("http://test.foo/test" + System.currentTimeMillis());
 
-        asset.setPrivateKey(privateKey);
-        asset.setUsername(username);
-        asset.setRedirect(redirect);
-        asset.setCertReq(cr);
+        for(int i = 0; i < count; i++){
+            Identifier id = BasicIdentifier.newID("asset:id:/" + r + System.currentTimeMillis());
+            Asset asset = store.create();
+             assets.add(asset);
+            asset.setIdentifier(id);
+            assert asset != null : "Error: The store is not producing valid assets when requested. A null was returned";
+            String username = "testUser-" + r;
+            URI redirect = URI.create("http://test.foo/test/" + r + System.currentTimeMillis());
 
-        store.save(asset);
+            asset.setPrivateKey(privateKey);
+            asset.setUsername(username);
+            asset.setRedirect(redirect);
+            asset.setCertReq(cr);
 
-        // now read it back.
-        Asset asset2 = store.get(id);
+            store.save(asset);
 
-        assert asset.getIdentifier().equals(asset2.getIdentifier()) : "Identifiers on assets do nto match. " +
-                "Expected \"" + asset.getIdentifierString() + "\" but got \"" + asset2.getIdentifierString() + "\"";
-        assert asset.getUsername().equals(asset2.getUsername()) : "Username on assets do not match. " +
-                "Expected \"" + asset.getUsername() + "\" but got \"" + asset2.getUsername();
-        assert asset.getPrivateKey().equals(asset2.getPrivateKey()) : "Private keys on assets do not match. " +
-                "Expected \"" + asset.getPrivateKey() + "\" but got \"" + asset2.getPrivateKey();
-        assert asset.getRedirect().equals(asset2.getRedirect()) : "Redirect on assets do not match. " +
-                "Expected \"" + asset.getRedirect() + "\" but got \"" + asset2.getRedirect();
-        // Special note: MySQL will truncate nanoseconds from dates so the best we can do is verify the milliseconds match.
-        assert Math.abs(asset.getCreationTime().getTime() - asset2.getCreationTime().getTime())<1000 : "Timestamp on assets do not match. " +
-                "Expected \"" + asset.getCreationTime() + "\" but got \"" + asset2.getCreationTime() + "\"";
-        // Generally there is no good concept of equality between certificatiion requests. In this specific case though,
-        // the requests should be identical so we can compare them as strings. This is a data integrity test.
-        assert rawCR.equals(CertUtil.fromCertReqToString(asset2.getCertReq())) : "Certification requests on assets do not match. " +
-                  "Expected \"" + asset.getCertReq() + "\" but got \"" + asset2.getCertReq();
+        }
 
-        return asset;
+                // now read it back.
+
+        for(Asset asset : assets){
+            Asset asset2 = store.get(asset.getIdentifier());
+
+            assert asset.getIdentifier().equals(asset2.getIdentifier()) : "Identifiers on assets do not match. " +
+                    "Expected \"" + asset.getIdentifierString() + "\" but got \"" + asset2.getIdentifierString() + "\"";
+            assert asset.getUsername().equals(asset2.getUsername()) : "Username on assets do not match. " +
+                    "Expected \"" + asset.getUsername() + "\" but got \"" + asset2.getUsername();
+            assert asset.getPrivateKey().equals(asset2.getPrivateKey()) : "Private keys on assets do not match. " +
+                    "Expected \"" + asset.getPrivateKey() + "\" but got \"" + asset2.getPrivateKey();
+            assert asset.getRedirect().equals(asset2.getRedirect()) : "Redirect on assets do not match. " +
+                    "Expected \"" + asset.getRedirect() + "\" but got \"" + asset2.getRedirect();
+            // Special note: MySQL will truncate nanoseconds from dates so the best we can do is verify the milliseconds match.
+            assert Math.abs(asset.getCreationTime().getTime() - asset2.getCreationTime().getTime())<1000 : "Timestamp on assets do not match. " +
+                    "Expected \"" + asset.getCreationTime() + "\" but got \"" + asset2.getCreationTime() + "\"";
+            // Generally there is no good concept of equality between certificatiion requests. In this specific case though,
+            // the requests should be identical so we can compare them as strings. This is a data integrity test.
+            assert rawCR.equals(CertUtil.fromCertReqToString(asset2.getCertReq())) : "Certification requests on assets do not match. " +
+                      "Expected \"" + asset.getCertReq() + "\" but got \"" + asset2.getCertReq();
+            // Don't clutter up the store with test cases.
+            store.remove(asset.getIdentifier());
+
+        }
+
     }
 
     @Test

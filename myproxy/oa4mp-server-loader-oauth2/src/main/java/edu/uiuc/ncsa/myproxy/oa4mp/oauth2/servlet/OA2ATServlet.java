@@ -13,6 +13,7 @@ import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
+import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.*;
@@ -126,6 +127,9 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
                 st2.setRefreshToken(rt);
                 rt.setExpiresIn(computeRefreshLifetime(st2));
                 st2.setRefreshTokenValid(true);
+            }else{
+                // Do not return a refresh token.
+                 atResponse.setRefreshToken(null);
             }
             getTransactionStore().save(st2);
 
@@ -162,13 +166,18 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
             throw new InvalidTokenException("Error: The refresh token is no longer valid");
         }
         t.setRefreshTokenValid(false); // this way if it fails at some point we know it is invalid.
-        RTIRequest rtiRequest = new RTIRequest(request, c, t.getAccessToken());
+        AccessToken at = t.getAccessToken();
+        RTIRequest rtiRequest = new RTIRequest(request, c, at);
         RTI2 rtIsuuer = new RTI2(getTF2(), getServiceEnvironment().getServiceAddress());
         RTIResponse rtiResponse = (RTIResponse) rtIsuuer.process(rtiRequest);
         RefreshToken rt = rtiResponse.getRefreshToken();
         rt.setExpiresIn(computeRefreshLifetime(t));
         t.setRefreshToken(rtiResponse.getRefreshToken());
         t.setRefreshTokenValid(true);
+        t.setAccessToken(rtiResponse.getAccessToken());
+        // At this point, key in the transaction store is the grant, so changing the access token
+        // over-writes the current value. This practically invalidates the previous access token.
+        getTransactionStore().remove(t.getIdentifier()); // this is necessary to clear any caches.
         getTransactionStore().save(t);
         rtiResponse.write(response);
         IssuerTransactionState state = new IssuerTransactionState(
