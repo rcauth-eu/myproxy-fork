@@ -5,7 +5,6 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStoreUtil;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
-import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +39,6 @@ public class OA2StartRequest extends ClientServlet {
         if (getCE().isShowRedirectPage()) {
             request.setAttribute(REDIR, REDIR);
             request.setAttribute("redirectUrl", gtwResp.getRedirect().toString());
-            request.setAttribute("privateKey", KeyUtil.toPKCS8PEM(gtwResp.getPrivateKey()));
             request.setAttribute(ACTION_KEY, ACTION_KEY);
             request.setAttribute("action", ACTION_REDIRECT_VALUE);
 

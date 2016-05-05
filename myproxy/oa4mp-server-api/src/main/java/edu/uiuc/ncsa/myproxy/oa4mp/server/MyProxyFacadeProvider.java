@@ -86,7 +86,7 @@ public class MyProxyFacadeProvider extends HierarchicalConfigProvider<MyProxySer
         }
         // Unless there is something very exotic about your setup, a basic configuration that
         // points to the standard keystore available in java should be more than sufficient.
-        SSLKeystoreConfiguration sslKeystoreConfiguration = SSLConfigurationUtil.getSSLConfiguration(getConfig());
+        SSLKeystoreConfiguration sslKeystoreConfiguration = SSLConfigurationUtil.getSSLConfiguration(null, getConfig());
         return new MyProxyServiceFacade(sfc, sslKeystoreConfiguration);
     }
 

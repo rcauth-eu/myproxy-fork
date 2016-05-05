@@ -263,7 +263,7 @@ public abstract class AbstractClientLoader<T extends ClientEnvironment> extends 
 
     public SSLConfiguration getSSLConfiguration() {
         if (sslConfiguration == null) {
-            sslConfiguration = SSLConfigurationUtil.getSSLConfiguration(cn);
+            sslConfiguration = SSLConfigurationUtil.getSSLConfiguration(myLogger, cn);
         }
         return sslConfiguration;
     }

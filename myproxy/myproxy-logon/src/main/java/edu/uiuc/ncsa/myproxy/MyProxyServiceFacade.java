@@ -47,7 +47,7 @@ public class MyProxyServiceFacade {
     public MyProxyServiceFacade(ServiceFacadeConfiguration facadeConfiguration) {
         this.facadeConfiguration = facadeConfiguration;
         sslKeystoreConfiguration = new SSLKeystoreConfiguration();
-        sslKeystoreConfiguration.setUseDefaultJavaKeyStore(true);
+        sslKeystoreConfiguration.setUseDefaultJavaTrustStore(true);
 
     }
 

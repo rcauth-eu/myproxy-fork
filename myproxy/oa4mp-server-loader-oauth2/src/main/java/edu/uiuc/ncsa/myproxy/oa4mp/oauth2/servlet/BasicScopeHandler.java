@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.server.ScopeHandler;
@@ -13,6 +14,21 @@ import java.util.Collection;
  * on 8/17/15 at  4:10 PM
  */
 public class BasicScopeHandler implements ScopeHandler {
+
+    /**
+     * Optionally, the service environment may be injected into a scope handler to get configuration of
+     * components, e.g.
+     * @return
+     */
+    public OA2SE getOa2SE() {
+        return oa2SE;
+    }
+
+    public void setOa2SE(OA2SE oa2SE) {
+        this.oa2SE = oa2SE;
+    }
+
+    OA2SE oa2SE;
     Collection<String> scopes;
 
     @Override
@@ -30,8 +46,7 @@ public class BasicScopeHandler implements ScopeHandler {
      */
     @Override
     public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException {
-        // Plain vanilla just gets the sub field and returns it.
-        return userInfo;
+        return process(userInfo, null, transaction);
     }
 
     /**

@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.LDAPConfiguration;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.MyProxyFacadeProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AuthorizationServletConfig;
@@ -47,6 +48,7 @@ public class OA2SE extends ServiceEnvironmentImpl {
                  int clientSecretLength,
                  Collection<String> scopes,
                  ScopeHandler scopeHandler,
+                 LDAPConfiguration ldapConfiguration,
                  boolean isRefreshTokenEnabled) {
         super(logger,
                 mfp,
@@ -74,7 +76,9 @@ public class OA2SE extends ServiceEnvironmentImpl {
         this.scopes = scopes;
         this.scopeHandler = scopeHandler;
         OA2Scopes.ScopeUtil.setScopes(scopes); //Probably need a better place to do this at some point. Probably.
+
         this.refreshTokenEnabled = isRefreshTokenEnabled;
+        this.ldapConfiguration = ldapConfiguration;
     }
    boolean refreshTokenEnabled = false;
 
@@ -124,4 +128,14 @@ public class OA2SE extends ServiceEnvironmentImpl {
     public boolean hasScopeHandler(){
         return scopeHandler != null;
     }
+
+    public LDAPConfiguration getLdapConfiguration() {
+        return ldapConfiguration;
+    }
+
+    public void setLdapConfiguration(LDAPConfiguration ldapConfiguration) {
+        this.ldapConfiguration = ldapConfiguration;
+    }
+
+    LDAPConfiguration ldapConfiguration;
 }

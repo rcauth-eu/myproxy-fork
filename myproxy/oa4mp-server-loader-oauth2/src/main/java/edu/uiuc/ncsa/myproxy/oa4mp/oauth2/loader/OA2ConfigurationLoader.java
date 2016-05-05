@@ -3,6 +3,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.BasicScopeHandler;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.LDAPScopeHandler;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.*;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.*;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractConfigurationLoader;
@@ -75,7 +76,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     @Override
     public T createInstance() {
         try {
-            return (T) new OA2SE(loggerProvider.get(),
+            T se =  (T) new OA2SE(loggerProvider.get(),
                     getTransactionStoreProvider(),
                     getClientStoreProvider(),
                     getMaxAllowedNewClientRequests(),
@@ -95,7 +96,12 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     getClientSecretLength(),
                     getScopes(),
                     getScopeHandler(),
+                    getLdapConfiguration(),
                     isRefreshTokenEnabled());
+            if (getScopeHandler()  instanceof BasicScopeHandler){
+                ((BasicScopeHandler) getScopeHandler()).setOa2SE((OA2SE)se);
+            }
+            return se;
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new GeneralException("Error: Could not create the runtime environment", e);
         }
@@ -230,6 +236,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
     public ScopeHandler getScopeHandler() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (scopeHandler == null) {
+            // This gets the scopes if any and injects them into the scope handler.
             if (0 < cn.getChildrenCount(SCOPES)) {
                 String scopeHandlerName = Configurations.getFirstAttribute(Configurations.getFirstNode(cn, SCOPES), SCOPE_HANDLER);
                 if (scopeHandlerName != null) {
@@ -248,14 +255,22 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
             } else {
                 // no scopes element, so just use the basic handler.
-                scopeHandler = new BasicScopeHandler();
+             //   scopeHandler = new BasicScopeHandler();
+               scopeHandler = new LDAPScopeHandler();
+
             }
             scopeHandler.setScopes(getScopes());
         }
         return scopeHandler;
     }
+    LDAPConfiguration ldapConfiguration;
+    protected LDAPConfiguration getLdapConfiguration(){
+        if(ldapConfiguration == null) {
+            ldapConfiguration = LDAPConfigurationUtil.getLdapConfiguration(myLogger, cn);
+        }
+        return ldapConfiguration;
 
-
+    }
     public Collection<String> getScopes() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (scopes == null) {
             scopes = OA2ConfigurationLoaderUtils.getScopes(cn);
