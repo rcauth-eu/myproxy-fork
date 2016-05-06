@@ -30,8 +30,8 @@
         </td>
     </tr>
     <tr>
-        <td style="vertical-align: top;">indexPath</td>
-        <td style="vertical-align: top;">Location of system-built indices.</td>
+        <td style="vertical-align: top;">enabled</td>
+        <td style="vertical-align: top;">Attribute for the scope tag.</td>
     </tr>
     </tbody>
 </table>
@@ -45,6 +45,31 @@
         a certificate will be rejected. However, requests to the user info endpoint will still be processed.
     </li>
 </ul>
+<p>
+    The default behavior is that all basic scopes are used. Any other scopes that are specified are added to the
+    list. On the client, this means that these will be requested. On the server, this means that if requested,
+    they will be processed. Specifying a scope on the client that is unknown to a server will make the request
+    fail.
+</p>
+<p>
+    Sometimes, it is necessary to disable a scope. For instance, a specialized instance that only issues certificates
+    against a refresh token should never return any user information. This is the purpose of the enabled flag. Here
+    would be how to effect that.
+</p>
+
+<pre>
+&lt;service name="default" address="https://myservice.org:8443/oauth"&gt;
+   &lt;scopes&gt;
+       &lt;scope enabled="false"&gt;profile&lt;/scope&gt;
+       &lt;scope enabled="false"&gt;email&lt;/scope&gt;
+   &lt;/scopes&gt;
+    &lt;!-- other stuff.. --&gt;
+&lt;/service&gt;
+</pre>
+
+Attempts by a client to request the profile scope would be rejected. Since the getcert scope is not specified, it is
+enabled (you could also simply specify explicitly) so this server will return certificates but only the sub claim (since
+that is required by the openid scope, which is manadatory for OA4MP since it is OIDC compliant.)
 
 <h2>Server examples</h2>
 <h3>Example 1.</h3>

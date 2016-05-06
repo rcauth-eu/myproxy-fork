@@ -7,6 +7,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import javax.naming.CommunicationException;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -22,21 +23,26 @@ import java.util.Hashtable;
 public class LDAPScopeHandler extends BasicScopeHandler {
 
     @Override
-    public UserInfo process(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) throws UnsupportedScopeException {
+    synchronized  public UserInfo process(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) throws UnsupportedScopeException {
         if (!isLoggedOn()) {
             logon();
         }
-        try {
-            String searchName = (String) userInfo.getMap().get("eppn");
-            if (searchName != null) {
-                userInfo.getMap().putAll(simpleSearch(context, searchName, getCfg().getSearchAttributes().toArray(new String[]{})));
+            try {
+                String searchName = (String) userInfo.getMap().get("eppn");
+                if (searchName != null) {
+                    userInfo.getMap().putAll(simpleSearch(context, searchName, getCfg().getSearchAttributes().toArray(new String[]{})));
+                }
+                context.close();
+            } catch (CommunicationException ce) {
+                getOa2SE().warn("Communication exception talking to LDAP.");
+            } catch (Throwable e) {
+                if (getOa2SE().getMyLogger().isDebugOn()) {
+                    e.printStackTrace();
+                }
+                getOa2SE().getMyLogger().error("Error: Could not retrieve information from LDAP. Processing will continue.", e);
+            }finally {
+                closeConnection();
             }
-        } catch (Throwable e) {
-            if (getOa2SE().getMyLogger().isDebugOn()) {
-                e.printStackTrace();
-            }
-            getOa2SE().getMyLogger().error("Error: Could not retrieve information from LDAP. Processing will continue.", e);
-        }
         return userInfo;
     }
 
@@ -53,12 +59,6 @@ public class LDAPScopeHandler extends BasicScopeHandler {
 
     protected boolean logon() {
         try {
-                 /*
-                 uid=mess_oidc_query,ou=system,o=MESS,dc=co,dc=cilogon,dc=org
-                 pOBxTBGfhc0iua901fHq
-
-                 ldapsearch -LLL -w pOBxTBGfhc0iua901fHq -D 'uid=mess_oidc_query,ou=system,o=MESS,dc=co,dc=cilogon,dc=org' -H ldaps://co.cilogon.org -b 'o=MESS,dc=co,dc=cilogon,dc=org'
-                  */
             // FIXME !! Stopgap. Should set this in the SSL Socket directly.
             System.setProperty("javax.net.ssl.trustStore", getCfg().getSslConfiguration().getTrustrootPath());
             System.setProperty("javax.net.ssl.trustStorePassword", getCfg().getSslConfiguration().getTrustRootPassword());
@@ -124,5 +124,18 @@ public class LDAPScopeHandler extends BasicScopeHandler {
         }
 
         return json;
+    }
+
+    protected void closeConnection(){
+        if(context != null){
+            try{
+                context.close();
+            }catch(Throwable t){
+                if (getOa2SE().getMyLogger().isDebugOn()) {
+                    t.printStackTrace();
+                }
+                getOa2SE().getMyLogger().info("Exception trying to close LDAP connection: " + t.getMessage());
+            }
+        }
     }
 }
