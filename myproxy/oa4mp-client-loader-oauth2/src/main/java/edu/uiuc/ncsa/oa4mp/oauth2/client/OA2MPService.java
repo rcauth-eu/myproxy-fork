@@ -209,7 +209,9 @@ public class OA2MPService extends OA4MPService {
         }
         return null; // This will cause all sorts of stuff to fail later, which we want,
     }
-    public AssetResponse getCert(OA2Asset a, ATResponse2 atResponse2) {
+
+    public AssetResponse getCert(OA2Asset a,
+                                 ATResponse2 atResponse2) {
         KeyPair keyPair = getNextKeyPair();
         MyPKCS10CertRequest certReq = null;
         try {
@@ -263,7 +265,8 @@ public class OA2MPService extends OA4MPService {
         RTResponse rtResponse = ds2.refresh(rtRequest);
         asset.setAccessToken(rtResponse.getAccessToken());
         asset.setRefreshToken(rtResponse.getRefreshToken());
-
+        getAssetStore().remove(asset.getIdentifier()); // clear out
+        getAssetStore().save(asset);
         return asset;
     }
 

@@ -266,7 +266,7 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         info("done with client registration, client=" + client.getIdentifierString());
         // Fix for CIL-169: the last thing that should be done after this is over-ridden is to fire a new client event:
         //            fireNewClientEvent(client);
-        // Failure to do so will in turn turn of the ability to email new client registrations!
+        // Failure to do so will turn off the ability to email new client registrations!
         return client;
     }
 

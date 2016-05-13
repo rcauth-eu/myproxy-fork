@@ -76,7 +76,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     @Override
     public T createInstance() {
         try {
-            T se =  (T) new OA2SE(loggerProvider.get(),
+            T se = (T) new OA2SE(loggerProvider.get(),
                     getTransactionStoreProvider(),
                     getClientStoreProvider(),
                     getMaxAllowedNewClientRequests(),
@@ -98,8 +98,8 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     getScopeHandler(),
                     getLdapConfiguration(),
                     isRefreshTokenEnabled());
-            if (getScopeHandler()  instanceof BasicScopeHandler){
-                ((BasicScopeHandler) getScopeHandler()).setOa2SE((OA2SE)se);
+            if (getScopeHandler() instanceof BasicScopeHandler) {
+                ((BasicScopeHandler) getScopeHandler()).setOa2SE((OA2SE) se);
             }
             return se;
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -249,28 +249,32 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     }
                     scopeHandler = (ScopeHandler) x;
                 } else {
-                    info("Scope handler attribute found in configuration, but no value was found for it. Skipping and using the default handler.");
+                    info("Scope handler attribute found in configuration, but no value was found for it. Skipping custom loaded scope handling.");
                 }
-
-
-            } else {
-                // no scopes element, so just use the basic handler.
-             //   scopeHandler = new BasicScopeHandler();
-               scopeHandler = new LDAPScopeHandler();
-
+            }
+            // no scopes element, so just use the basic handler.
+            if (scopeHandler == null) {
+                if (getLdapConfiguration().isEnabled()) {
+                    scopeHandler = new LDAPScopeHandler();
+                } else {
+                    scopeHandler = new BasicScopeHandler();
+                }
             }
             scopeHandler.setScopes(getScopes());
         }
         return scopeHandler;
     }
+
     LDAPConfiguration ldapConfiguration;
-    protected LDAPConfiguration getLdapConfiguration(){
-        if(ldapConfiguration == null) {
+
+    protected LDAPConfiguration getLdapConfiguration() {
+        if (ldapConfiguration == null) {
             ldapConfiguration = LDAPConfigurationUtil.getLdapConfiguration(myLogger, cn);
         }
         return ldapConfiguration;
 
     }
+
     public Collection<String> getScopes() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         if (scopes == null) {
             scopes = OA2ConfigurationLoaderUtils.getScopes(cn);
@@ -343,14 +347,15 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
         }
         return csp;
     }
+
     protected OA2SQLTransactionStoreProvider createSQLTSP(ConfigurationNode config,
-                                              ConnectionPoolProvider<? extends ConnectionPool> cpp,
-                                              String type,
-                                              MultiDSClientStoreProvider clientStoreProvider,
-                                              Provider<? extends OA2ServiceTransaction> tp,
-                                              Provider<TokenForge> tfp,
-                                              MapConverter converter){
-            return new OA2SQLTransactionStoreProvider(config,cpp,type,clientStoreProvider,tp,tfp,converter);
+                                                          ConnectionPoolProvider<? extends ConnectionPool> cpp,
+                                                          String type,
+                                                          MultiDSClientStoreProvider clientStoreProvider,
+                                                          Provider<? extends OA2ServiceTransaction> tp,
+                                                          Provider<TokenForge> tfp,
+                                                          MapConverter converter) {
+        return new OA2SQLTransactionStoreProvider(config, cpp, type, clientStoreProvider, tp, tfp, converter);
     }
 
     protected Provider<TransactionStore> getTSP(IdentifiableProvider tp,
@@ -406,7 +411,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
         IdentifiableProvider tp = new ST2Provider(new OA4MPIdentifierProvider(SCHEME, SCHEME_SPECIFIC_PART, TRANSACTION_ID, false));
         OA2TransactionKeys keys = new OA2TransactionKeys();
         OA2TConverter<OA2ServiceTransaction> tc = new OA2TConverter<OA2ServiceTransaction>(keys, tp, getTokenForgeProvider().get(), getClientStoreProvider().get());
-        return getTSP(tp,  tc);
+        return getTSP(tp, tc);
     }
 
 

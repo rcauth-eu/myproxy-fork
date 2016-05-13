@@ -42,8 +42,9 @@ public class OA2ClientCheck {
                 break;
             }
         }
+
         if (!foundCB) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "The given redirect is not valid for this client", HttpStatus.SC_BAD_REQUEST);
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "The given redirect \"" + redirect + "\" is not valid for this client", HttpStatus.SC_BAD_REQUEST);
 
             //throw new GeneralException("Error: The given redirect is not valid for this client");
         }

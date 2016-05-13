@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.ACS2;
 import edu.uiuc.ncsa.security.core.Identifier;
@@ -7,9 +8,13 @@ import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
+import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
-import edu.uiuc.ncsa.security.oauth_2_0.*;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Client;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.oauth_2_0.server.PAIResponse2;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
@@ -81,9 +86,9 @@ public class OA2CertServlet extends ACS2 {
                     // trivially uris). This checks that there a
                     // scheme, which implies this is an id. The other token is assumed to
                     // be the secret.
-                    if(test.getScheme()!= null ) {
+                    if (test.getScheme() != null) {
                         rawID = x;
-                    }else{
+                    } else {
                         rawSecret = x;
                     }
                 } catch (Throwable t) {
@@ -119,7 +124,7 @@ public class OA2CertServlet extends ACS2 {
         PAIResponse2 par = (PAIResponse2) iResponse;
         AccessToken accessToken = par.getAccessToken();
         OA2ServiceTransaction t = (OA2ServiceTransaction) getTransactionStore().get(accessToken);
-        if(t==null){
+        if (t == null) {
             throw new OA2GeneralError(OA2Errors.INVALID_TOKEN, "Invalid access token. Request refused", HttpStatus.SC_UNAUTHORIZED);
         }
         if (!t.getScopes().contains(OA2Scopes.SCOPE_MYPROXY)) {
@@ -134,9 +139,13 @@ public class OA2CertServlet extends ACS2 {
             throw new OA2GeneralError(OA2Errors.INVALID_TOKEN, "Invalid access token. Request refused", HttpStatus.SC_UNAUTHORIZED);
         }
         checkClient(t.getClient());
-
-        checkTimestamp(accessToken.getToken());
-
+        // If refresh tokens are enabled on this server, use them against their timeout value.
+        if (((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) {
+            checkTimestamp(t.getRefreshToken().getToken(), t.getRefreshTokenLifetime());
+        } else {
+            // Otherwise, use the access token and the server default.
+            checkTimestamp(accessToken.getToken());
+        }
         return t;
     }
 
@@ -159,5 +168,17 @@ public class OA2CertServlet extends ACS2 {
         OA2ServiceTransaction st = (OA2ServiceTransaction) trans;
         checkMPConnection(st);
         doCertRequest(st, statusString);
+    }
+
+    @Override
+    public void postprocess(TransactionState state) throws Throwable {
+        super.postprocess(state);
+        OA2ServiceTransaction t = (OA2ServiceTransaction) state.getTransaction();
+        if (((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled() && t.hasRefreshToken()) {
+            // If this has a refresh token, then then do not invalidate the access token, since
+            // users may re-get certs for the lifetime of the refresh token.
+            t.setAccessTokenValid(true);
+            getTransactionStore().save(t);
+        }
     }
 }

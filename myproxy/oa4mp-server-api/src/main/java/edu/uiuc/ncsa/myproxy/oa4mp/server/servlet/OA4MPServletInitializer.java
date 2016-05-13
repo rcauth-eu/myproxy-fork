@@ -62,6 +62,16 @@ public class OA4MPServletInitializer implements Initialization {
         ServiceEnvironmentImpl env = (ServiceEnvironmentImpl) getEnvironment();
 
         MyLoggingFacade logger = env.getMyLogger();
+        logger.info("Cleaning up incomplete client registrations");
+        // Fixes CIL-286
+      /*  Map<Identifier, Client> clientStore = ((ServiceEnvironmentImpl) getEnvironment()).getClientStore();
+        for (Identifier id : clientStore.keySet()) {
+            Client client = clientStore.get(id);
+            if (!client.isCompleted()) {
+                clientStore.remove(client.getIdentifier());
+                logger.info("removing incompleted client registration for id =\"" + client.getIdentifierString() + "\"");
+            }
+        }*/
         if (transactionCleanup == null) {
             transactionCleanup = new Cleanup<>(logger);
             MyProxyDelegationServlet.transactionCleanup = transactionCleanup; // set it in the servlet
