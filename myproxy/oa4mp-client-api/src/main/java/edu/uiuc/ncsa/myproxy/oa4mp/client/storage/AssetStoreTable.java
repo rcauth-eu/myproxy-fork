@@ -25,7 +25,11 @@ public class AssetStoreTable extends Table {
     @Override
       public void createColumnDescriptors() {
           super.createColumnDescriptors();
-          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().username(), LONGVARCHAR, false, true));
+          
+          //BUG: Don't set the username to be primary key, because it is not getting UPDATEed 
+          //getColumnDescriptor().add(new ColumnDescriptorEntry(ask().username(), LONGVARCHAR, false, true));
+          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().username(), LONGVARCHAR, true, false));
+          
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().certificates(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().privateKey(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().redirect(), LONGVARCHAR, true, false));
