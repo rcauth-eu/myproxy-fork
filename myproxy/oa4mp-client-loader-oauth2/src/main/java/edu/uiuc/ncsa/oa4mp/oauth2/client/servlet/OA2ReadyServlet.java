@@ -17,6 +17,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.client.ATResponse2;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
+import net.sf.json.util.JSONUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,62 +71,64 @@ public class OA2ReadyServlet extends ClientServlet {
         OA2MPService oa2MPService = (OA2MPService) getOA4MPService();
 
         UserInfo ui = null;
-        boolean getCerts = ((OA2ClientEnvironment)getCE()).getScopes().contains(OA2Scopes.SCOPE_MYPROXY);
+        boolean getCerts = ((OA2ClientEnvironment) getCE()).getScopes().contains(OA2Scopes.SCOPE_MYPROXY);
         System.out.println(getClass().getSimpleName() + ": getCerts? " + getCerts);
-            if (identifier == null) {
-                // Since this is a demo servlet, we don't blow up if there is no identifier found, just can't save anything.
-                String msg = "Error: no cookie found. Cannot save certificates";
-                warn(msg);
-                debug("No cookie found");
-                //if(asset == null) asset = new OA2Asset(BasicIdentifier.newID())
-                ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
-                ui = oa2MPService.getUserInfo(atResponse2.getAccessToken().toString());
-                if(getCerts) {
-                    assetResponse = oa2MPService.getCert(asset, atResponse2);
-                }
-            } else {
-                asset = (OA2Asset) getCE().getAssetStore().get(identifier);
-                if(asset.getState() == null || !asset.getState().equals(state)){
-                    warn("The expected state from the server was \"" + asset.getState() + "\", but instead \"" + state + "\" was returned. Transaction aborted.");
-                    throw new IllegalArgumentException("Error: The state returned by the server is invalid.");
-                }
-                ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
-                //  ui = oa2MPService.getUserInfo(atResponse2.getAccessToken().getToken());
-                ui = oa2MPService.getUserInfo(identifier);
-                if(getCerts) {
-                    System.out.println(getClass().getSimpleName() + ": getting a cert");
-
-                    assetResponse = oa2MPService.getCert(asset, atResponse2);
-                }
-                // The general case is to do the call with the identifier if you want the asset store managed.
-                //assetResponse = getOA4MPService().getCert(token, null, BasicIdentifier.newID(identifier));
+        if (identifier == null) {
+            // Since this is a demo servlet, we don't blow up if there is no identifier found, just can't save anything.
+            String msg = "Error: no cookie found. Cannot save certificates";
+            warn(msg);
+            debug("No cookie found");
+            //if(asset == null) asset = new OA2Asset(BasicIdentifier.newID())
+            ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
+            ui = oa2MPService.getUserInfo(atResponse2.getAccessToken().toString());
+            if (getCerts) {
+                assetResponse = oa2MPService.getCert(asset, atResponse2);
             }
+        } else {
+            asset = (OA2Asset) getCE().getAssetStore().get(identifier);
+            if (asset.getState() == null || !asset.getState().equals(state)) {
+                warn("The expected state from the server was \"" + asset.getState() + "\", but instead \"" + state + "\" was returned. Transaction aborted.");
+                throw new IllegalArgumentException("Error: The state returned by the server is invalid.");
+            }
+            ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
+            //  ui = oa2MPService.getUserInfo(atResponse2.getAccessToken().getToken());
+            ui = oa2MPService.getUserInfo(identifier);
+            if (getCerts) {
+                System.out.println(getClass().getSimpleName() + ": getting a cert");
+
+                assetResponse = oa2MPService.getCert(asset, atResponse2);
+            }
+            // The general case is to do the call with the identifier if you want the asset store managed.
+            //assetResponse = getOA4MPService().getCert(token, null, BasicIdentifier.newID(identifier));
+        }
         // The work in this call
 
         // Again, we take the first returned cert to peel off some information to display. This
         // just proves we got a response.
 
         info("2.b. Done! Displaying success page.");
-         if(getCerts) {
-             System.out.println(getClass().getSimpleName() + ": displaying the cert");
+        if (getCerts) {
+            System.out.println(getClass().getSimpleName() + ": displaying the cert");
 
-             if(assetResponse.getX509Certificates() == null){
-                 request.setAttribute("certSubject", "(no cert returned)");
-             }else {
-                 X509Certificate cert = assetResponse.getX509Certificates()[0];
-                 // Rest of this is putting up something for the user to see
-                 request.setAttribute("certSubject", cert.getSubjectDN());
-                 request.setAttribute("cert", CertUtil.toPEM(assetResponse.getX509Certificates()));
-                 request.setAttribute("username", assetResponse.getUsername());
-             }
-         }else{
-             System.out.println(getClass().getSimpleName() + ": *NOT* displaying the cert");
+            if (assetResponse.getX509Certificates() == null) {
+                request.setAttribute("certSubject", "(no cert returned)");
+            } else {
+                X509Certificate cert = assetResponse.getX509Certificates()[0];
+                // Rest of this is putting up something for the user to see
+                request.setAttribute("certSubject", cert.getSubjectDN());
+                request.setAttribute("cert", CertUtil.toPEM(assetResponse.getX509Certificates()));
+                request.setAttribute("username", assetResponse.getUsername());
+            }
+        } else {
+            System.out.println(getClass().getSimpleName() + ": *NOT* displaying the cert");
 
-             request.setAttribute("certSubject", "(no cert requested)");
-         }
-        if(ui != null) {
-            request.setAttribute("userinfo", ui.toJSon());
-        }else{
+            request.setAttribute("certSubject", "(no cert requested)");
+        }
+        if (ui != null) {
+            String output = JSONUtils.valueToString(ui.toJSon(), 4, 2);
+            System.err.println(getClass().getSimpleName() + " raw JSON=\n" + output);
+            request.setAttribute("userinfo", output);
+        } else {
             request.setAttribute("userinfo", "no user info returned.");
 
         }

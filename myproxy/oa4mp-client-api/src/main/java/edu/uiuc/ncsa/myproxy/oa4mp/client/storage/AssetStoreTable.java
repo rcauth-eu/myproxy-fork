@@ -25,7 +25,8 @@ public class AssetStoreTable extends Table {
     @Override
       public void createColumnDescriptors() {
           super.createColumnDescriptors();
-          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().username(), LONGVARCHAR, false, true));
+        // Fix for OAUTH-201. Username was incorrectly flagged as a primary key.
+          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().username(), LONGVARCHAR, false, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().certificates(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().privateKey(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().redirect(), LONGVARCHAR, true, false));
