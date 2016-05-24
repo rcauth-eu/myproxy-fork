@@ -59,7 +59,6 @@ public class LDAPScopeHandler extends BasicScopeHandler {
 
     protected boolean logon() {
         try {
-            // FIXME !! Stopgap. Should set this in the SSL Socket directly.
             System.setProperty("javax.net.ssl.trustStore", getCfg().getSslConfiguration().getTrustrootPath());
             System.setProperty("javax.net.ssl.trustStorePassword", getCfg().getSslConfiguration().getTrustRootPassword());
 
@@ -67,15 +66,11 @@ public class LDAPScopeHandler extends BasicScopeHandler {
             Hashtable<String, String> env = new Hashtable<String, String>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             env.put(Context.PROVIDER_URL, "ldaps://" + getCfg().getServer() + ":" + getCfg().getPort());
-            //
-            //   env.put(Context.SECURITY_AUTHENTICATION, "simple");
             env.put(Context.SECURITY_PRINCIPAL, getCfg().getSecurityPrincipal());
             env.put(Context.SECURITY_CREDENTIALS, getCfg().getPassword());
             env.put(Context.SECURITY_PROTOCOL, "ssl");
-            //        env.put("java.naming.ldap.factory.socket", "CustomSocketFactory");
 
             // Create the initial context
-
             DirContext dirContext = new InitialDirContext(env);
             context = (LdapContext) dirContext.lookup(getCfg().getSearchBase());
             return context != null;
@@ -93,7 +88,12 @@ public class LDAPScopeHandler extends BasicScopeHandler {
                                       String[] attributes) throws NamingException {
         JSONObject json = new JSONObject();
         SearchControls ctls = new SearchControls();
-        ctls.setReturningAttributes(attributes);
+        if(attributes == null || attributes.length == 0){
+            // return everything if nothing is specified.
+            ctls.setReturningAttributes(null);
+        }else {
+            ctls.setReturningAttributes(attributes);
+        }
         String filter = "(&(uid=" + userID + "))";
         NamingEnumeration e = ctx.search("ou=People", filter, ctls);
         while (e.hasMore()) {

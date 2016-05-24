@@ -3,6 +3,7 @@ package edu.uiuc.ncsa.myproxy.client;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStore;
 import edu.uiuc.ncsa.security.core.Identifier;
+import edu.uiuc.ncsa.security.core.exceptions.UnregisteredObjectException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
@@ -48,17 +49,16 @@ public class AssetStoreTest extends TestCase {
             return;
         }
         SecureRandom secureRandom = new SecureRandom();
-        long l = secureRandom.nextLong();
-        String r1 = Long.toHexString(l);
+        String r1 = Long.toHexString(secureRandom.nextLong());
         KeyPair kp1 = KeyUtil.generateKeyPair();
         PrivateKey privateKey1 = kp1.getPrivate();
         MyPKCS10CertRequest cr1 = CertUtil.createCertRequest(kp1);
         String rawCR1 = CertUtil.fromCertReqToString(cr1);
         String username1 = "testUser-" + r1;
-        URI redirect1 = URI.create("http://test.foo/test/" + r1 + System.currentTimeMillis());
-        Identifier token1 = BasicIdentifier.newID("token:id:/" + r1 + System.currentTimeMillis());
+        URI redirect1 = URI.create("http://test.foo/test/" + r1 +"/" +  System.currentTimeMillis());
+        Identifier token1 = BasicIdentifier.newID("token:id:/" + r1 + "/" + System.currentTimeMillis());
 
-        Identifier id1 = BasicIdentifier.newID("asset:id:/" + r1 + System.currentTimeMillis());
+        Identifier id1 = BasicIdentifier.newID("asset:id:/" + r1 + "/" + System.currentTimeMillis());
         Asset asset = store.create();
         assert asset != null : "Error: The store is not producing valid assets when requested. A null was returned";
         asset.setIdentifier(id1);
@@ -70,29 +70,31 @@ public class AssetStoreTest extends TestCase {
 
         store.save(asset);
         // Now try and update the identifier -- that should fail.
-        String r2 = Long.toHexString(l);
-        Identifier id2 = BasicIdentifier.newID("asset:id:/" + r2 + System.currentTimeMillis());
-
+        String r2 = Long.toHexString(secureRandom.nextLong());
+        Identifier id2 = BasicIdentifier.newID("asset:id:/" + r2 + "/"+ System.currentTimeMillis());
         asset.setIdentifier(id2);
-        try{
-           store.update(asset);
-            assert store.get(id2) == null;
-            assert false : "Was able to update identifier of an asset.";
-        }catch(Exception t){
-            t.printStackTrace();
+        // Updating the identifier should fail as per the contract with the store, since an unknown
+        // identifier means the object needs to be registered first.
+        try {
+            store.update(asset);
+            assert false : "Error: was able to update the identifier.";
+        } catch (UnregisteredObjectException t) {
             assert true;
         }
+        // ok, set the id back since that worked.
+        asset.setIdentifier(id1);
         // now for everything else.
         KeyPair kp2 = KeyUtil.generateKeyPair();
-        PrivateKey privateKey2 = kp1.getPrivate();
-        MyPKCS10CertRequest cr2 = CertUtil.createCertRequest(kp1);
-        String rawCR2 = CertUtil.fromCertReqToString(cr1);
-        String username2 = "testUser-" + r1;
-        URI redirect2 = URI.create("http://test.foo/test/" + r1 + System.currentTimeMillis());
-        Identifier token2 = BasicIdentifier.newID("token:id:/" + r1 + System.currentTimeMillis());
+        PrivateKey privateKey2 = kp2.getPrivate();
+        MyPKCS10CertRequest cr2 = CertUtil.createCertRequest(kp2);
+        String rawCR2 = CertUtil.fromCertReqToString(cr2);
+        String username2 = "testUser-" + r2;
+        URI redirect2 = URI.create("http://test.foo/test/" + r2 + "/" +  System.currentTimeMillis());
+        Identifier token2 = BasicIdentifier.newID("token:id:/" + r1 + "/" + System.currentTimeMillis());
 
         asset.setUsername(username2);
         asset.setPrivateKey(privateKey2);
+        asset.setCertReq(cr2);
         asset.setRedirect(redirect2);
         asset.setToken(token2);
         store.update(asset);
@@ -109,7 +111,6 @@ public class AssetStoreTest extends TestCase {
 
 
     /**
-     *
      * @param store
      * @return
      * @throws Exception
@@ -131,13 +132,13 @@ public class AssetStoreTest extends TestCase {
         String rawCR = CertUtil.fromCertReqToString(cr);
 
         for (int i = 0; i < count; i++) {
-            Identifier id = BasicIdentifier.newID("asset:id:/" + r +"/" + i);
+            Identifier id = BasicIdentifier.newID("asset:id:/" + r + "/" + i);
             Asset asset = store.create();
             assert asset != null : "Error: The store is not producing valid assets when requested. A null was returned";
             assets.add(asset);
             asset.setIdentifier(id);
             String username = "testUser-" + r;
-            URI redirect = URI.create("http://test.foo/test/" + r );
+            URI redirect = URI.create("http://test.foo/test/" + r);
 
             asset.setPrivateKey(privateKey);
             asset.setUsername(username);
@@ -197,23 +198,23 @@ public class AssetStoreTest extends TestCase {
     }
 
     @Test
-     public void testUpdateMemoryStore() throws Exception {
-         testUpdate(ClientTestStoreUtil.getMemoryStore());
-     }
+    public void testUpdateMemoryStore() throws Exception {
+        testUpdate(ClientTestStoreUtil.getMemoryStore());
+    }
 
-     @Test
-     public void testUpdateFileStore() throws Exception {
-         testUpdate(ClientTestStoreUtil.getFileStore());
-     }
+    @Test
+    public void testUpdateFileStore() throws Exception {
+        testUpdate(ClientTestStoreUtil.getFileStore());
+    }
 
 
-     @Test
-     public void testUpdatePGStore() throws Exception {
-         testUpdate(ClientTestStoreUtil.getPostgresStore());
-     }
+    @Test
+    public void testUpdatePGStore() throws Exception {
+        testUpdate(ClientTestStoreUtil.getPostgresStore());
+    }
 
-     @Test
-     public void testUpdateMySQLStore() throws Exception {
-         testUpdate(ClientTestStoreUtil.getMysqlStore());
-     }
+    @Test
+    public void testUpdateMySQLStore() throws Exception {
+        testUpdate(ClientTestStoreUtil.getMysqlStore());
+    }
 }

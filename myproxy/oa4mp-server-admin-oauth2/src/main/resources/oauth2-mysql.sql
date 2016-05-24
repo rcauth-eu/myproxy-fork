@@ -59,11 +59,16 @@ CREATE TABLE oauth2.transactions (
   certificate         TEXT,
   username            TEXT,
   myproxyUsername     TEXT,
+  access_token_valid tinyint(1) DEFAULT NULL,
+  auth_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  nonce text,
+  scopes text,
   UNIQUE INDEX verifier (verifier_token(255)),
   UNIQUE INDEX accessToken (access_token(255)),
   UNIQUE INDEX refreshToken (refresh_token(255)),
   UNIQUE INDEX username (username(255))
 );
+
 
 COMMIT;
 # Now to grant restricted access. The  tables have to exist before this step

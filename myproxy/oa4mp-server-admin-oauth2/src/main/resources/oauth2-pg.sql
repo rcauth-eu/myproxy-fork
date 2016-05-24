@@ -63,6 +63,7 @@ create table :oa4mpSchema.:oa4mpApproverTable(
     approval_ts TIMESTAMP);
 
 create table :oa4mpSchema.:oa4mpTransactionTable  (
+create table transactions  (
    temp_token text primary key,
    temp_token_valid boolean,
    callback_uri text,
@@ -77,7 +78,10 @@ create table :oa4mpSchema.:oa4mpTransactionTable  (
    refresh_token_valid boolean,
    expires_in bigint,
    myproxyusername text,
-   username text);
+   username text,
+   auth_time TIMESTAMP DEFAULT now(),
+   nonce text,
+   scopes text);
 
 CREATE UNIQUE INDEX trans_ndx ON :oa4mpSchema.:oa4mpTransactionTable (temp_token, refresh_token, access_token, username);
 

@@ -14,24 +14,24 @@
 
 <p>Scope of this document: for client and server, OAuth 2/OIDC only.</p>
 
-<p>OAuth 2 supports custom scopes for servers. </p>
+<p>OAuth 2 supports custom scopes for servers. The top-level tag is the <code>scopes</code>
+tag and that in turn contains <code>scope</code> tags. These scope tags contain a single scope and
+    support a single attribute:
+</p>
 
 <table style="text-align: left; width: 100%;" border="1" cellspacing="2" cellpadding="2">
     <tbody>
     <tr>
-        <td style="vertical-align: top;">scopes</td>
-        <td style="vertical-align: top;">Top-level tag. All requested scopes reside within this.
-        </td>
-    </tr>
-    <tr>
-        <td style="vertical-align: top;">scope</td>
-        <td style="vertical-align: top;">A single scope. If on the server, this tell the server to pass this through
-            to a custom handler. If on the client, this scope will be requested.
-        </td>
-    </tr>
+         <td style="vertical-align: top;">Name</td>
+         <td style="vertical-align: top;">Required</td>
+         <td style="vertical-align: top;">Default</td>
+         <td style="vertical-align: top;"></td>
+     </tr>
     <tr>
         <td style="vertical-align: top;">enabled</td>
-        <td style="vertical-align: top;">Attribute for the scope tag.</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">true</td>
+        <td style="vertical-align: top;">Enable or disable this scope.</td>
     </tr>
     </tbody>
 </table>
@@ -71,8 +71,7 @@ Attempts by a client to request the profile scope would be rejected. Since the g
 enabled (you could also simply specify explicitly) so this server will return certificates but only the sub claim (since
 that is required by the openid scope, which is manadatory for OA4MP since it is OIDC compliant.)
 
-<h2>Server examples</h2>
-<h3>Example 1.</h3>
+<h2>A Server Example</h2>
 
 <pre>
 &lt;service name="default" address="https://myservice.org:8443/oauth"&gt;
@@ -85,8 +84,7 @@ that is required by the openid scope, which is manadatory for OA4MP since it is 
 <p>This informs the server that the scope with tag "custom.scope" should be passed through to whatever custom handler
 has been specified. If this were not configured, the server would reject any request with this scope.</p>
 
-<h2>Client examples</h2>
-<h3>Example 1.</h3>
+<h2>A Client Example</h2>
 <pre>
 &lt;config&gt;
    &lt;client name="my-cfg"&gt;
