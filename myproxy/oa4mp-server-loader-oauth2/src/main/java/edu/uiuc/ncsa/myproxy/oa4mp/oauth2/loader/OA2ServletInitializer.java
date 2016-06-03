@@ -17,7 +17,7 @@ import javax.servlet.ServletException;
 public class OA2ServletInitializer extends OA4MPServletInitializer {
     @Override
     public ExceptionHandler getExceptionHandler() {
-        if(exceptionHandler == null){
+        if (exceptionHandler == null) {
             exceptionHandler = new OA2ExceptionHandler(getEnvironment().getMyLogger());
         }
         return exceptionHandler;
@@ -28,9 +28,11 @@ public class OA2ServletInitializer extends OA4MPServletInitializer {
         if (isInitRun) return;
         super.init();
         OA2SE oa2SE = (OA2SE) getEnvironment();
-        MyProxyDelegationServlet.transactionCleanup.getRetentionPolicies().clear(); // We need a different set of policies than the original one.
-        MyProxyDelegationServlet.transactionCleanup.addRetentionPolicy(new RefreshTokenRetentionPolicy((RefreshTokenStore) oa2SE.getTransactionStore()));
-        oa2SE.getMyLogger().info("Intialized refresh token cleanup thread");
+        if(oa2SE.isRefreshTokenEnabled()){
+            MyProxyDelegationServlet.transactionCleanup.getRetentionPolicies().clear(); // We need a different set of policies than the original one.
+            MyProxyDelegationServlet.transactionCleanup.addRetentionPolicy(new RefreshTokenRetentionPolicy((RefreshTokenStore) oa2SE.getTransactionStore()));
+            oa2SE.getMyLogger().info("Intialized refresh token cleanup thread");
+        }
     }
 
 }

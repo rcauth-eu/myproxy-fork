@@ -170,7 +170,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         }
 
         if (t == null || !t.isRefreshTokenValid()) {
-            throw new InvalidTokenException("Error: The refresh token is no longer valid");
+            throw new InvalidTokenException("Error: The refresh token is no longer valid." );
         }
         t.setRefreshTokenValid(false); // this way if it fails at some point we know it is invalid.
         AccessToken at = t.getAccessToken();

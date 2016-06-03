@@ -52,12 +52,12 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
     @Override
     protected Client addNewClient(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         OA2Client client = (OA2Client) super.addNewClient(request, response);
-        String rawCBs = getRequiredParam(request, CALLBACK_URI);
+        String rawCBs = getRequiredParam(request, CALLBACK_URI, client);
         String rawRTLifetime = getParameter(request, REFRESH_TOKEN_LIFETIME);
         try {
             URI.create(client.getHomeUri());
         } catch (Throwable t) {
-            throw new RetryException("Error. The stated home uri is invalid: " + t.getMessage());
+            throw new ClientRegistrationRetryException("Error. The stated home uri is invalid: " + t.getMessage(), null, client);
         }
         if (rawRTLifetime == null || rawRTLifetime.length() == 0) {
             // This effectively means there is no refresh token set.
@@ -97,7 +97,7 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
         while (x != null) {
             if (!x.toLowerCase().startsWith("https:")) {
                 warn("Attempt to add bad callback uri for client " + client.getIdentifierString());
-                throw new RetryException("The callback \"" + x + "\" is not secure.");
+                throw new ClientRegistrationRetryException("The callback \"" + x + "\" is not secure.", null, client);
             }
             URI.create(x); // passes here means it is a uri. All we want this to do is throw an exception if needed.
 

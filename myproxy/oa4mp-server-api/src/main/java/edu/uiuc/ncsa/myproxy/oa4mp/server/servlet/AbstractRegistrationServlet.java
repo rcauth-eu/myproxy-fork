@@ -182,7 +182,8 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
                 pState = new ClientState(state, request, response, client);
             }
             present(pState);
-        } catch (RetryException r) {
+        } catch (ClientRegistrationRetryException r) {
+            getServiceEnvironment().getClientStore().remove(r.getClient().getIdentifier());
             setRetryParameters(request, r);
             if ((request.getAttribute(getValueTag(CLIENT_PROXY_LIMITED))!= null) && request.getAttribute(getValueTag(CLIENT_PROXY_LIMITED)).equals("on")) {
                 request.setAttribute(getValueTag(CLIENT_PROXY_LIMITED), "checked"); // so this is checked
@@ -220,10 +221,10 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         return req.getParameter(key);
     }
 
-    protected String getRequiredParam(HttpServletRequest req, String key) {
+    protected String getRequiredParam(HttpServletRequest req, String key, Client client) {
         String x = getParameter(req, key);
         if (x == null || x.length() == 0) {
-            throw new RetryException("Error: missing value for " + key);
+            throw new ClientRegistrationRetryException("Error: missing value for " + key, null, client);
         }
         return x;
     }
@@ -246,13 +247,13 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         // Fill in as much info as we can before parsing public key.
         // We always store exactly what was given to us, though later we html escape it to
         // prevent against HTML injection attacks (fixes bug OAUTH-87).
-        client.setName(getRequiredParam(request, CLIENT_NAME));
-        client.setHomeUri(getRequiredParam(request, CLIENT_HOME_URL));
-        String x = getRequiredParam(request, CLIENT_EMAIL);
+        client.setName(getRequiredParam(request, CLIENT_NAME, client));
+        client.setHomeUri(getRequiredParam(request, CLIENT_HOME_URL, client));
+        String x = getRequiredParam(request, CLIENT_EMAIL, client);
         java.util.regex.Pattern p = java.util.regex.Pattern.compile(emailPattern);
         java.util.regex.Matcher m = p.matcher(x);
         if (!m.matches()) {
-            throw new RetryException("The email address \"" + x + "\" is not valid.");
+            throw new ClientRegistrationRetryException("The email address \"" + x + "\" is not valid.", null, client);
         }
         client.setEmail(x);
 
@@ -284,5 +285,20 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         clientApproval.setApprover(approver);
         clientApproval.setApproved(true);
         getServiceEnvironment().getClientApprovalStore().save(clientApproval);
+    }
+    // Fixes CIL-286: Send along the client in the exception so it can be removed immediately rather
+    // than garbage collected later.
+
+    public static class ClientRegistrationRetryException extends RetryException {
+        public Client getClient() {
+            return client;
+        }
+
+        Client client;
+
+        public ClientRegistrationRetryException(String message, Throwable cause, Client client) {
+            super(message, cause);
+            this.client = client;
+        }
     }
   }

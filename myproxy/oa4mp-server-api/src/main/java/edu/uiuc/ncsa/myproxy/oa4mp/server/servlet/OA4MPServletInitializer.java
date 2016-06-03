@@ -3,6 +3,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.server.servlet;
 import edu.uiuc.ncsa.myproxy.MyProxyConnectable;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.AbstractCLIApprover;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.util.ConnectionCacheRetentionPolicy;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.cache.Cache;
 import edu.uiuc.ncsa.security.core.cache.CachedObject;
@@ -63,15 +64,7 @@ public class OA4MPServletInitializer implements Initialization {
 
         MyLoggingFacade logger = env.getMyLogger();
         logger.info("Cleaning up incomplete client registrations");
-        // Fixes CIL-286
-      /*  Map<Identifier, Client> clientStore = ((ServiceEnvironmentImpl) getEnvironment()).getClientStore();
-        for (Identifier id : clientStore.keySet()) {
-            Client client = clientStore.get(id);
-            if (!client.isCompleted()) {
-                clientStore.remove(client.getIdentifier());
-                logger.info("removing incompleted client registration for id =\"" + client.getIdentifierString() + "\"");
-            }
-        }*/
+
         if (transactionCleanup == null) {
             transactionCleanup = new Cleanup<>(logger);
             MyProxyDelegationServlet.transactionCleanup = transactionCleanup; // set it in the servlet
@@ -111,7 +104,7 @@ public class OA4MPServletInitializer implements Initialization {
                 MyProxyDelegationServlet.myproxyConnectionCache = myproxyConnectionCache; // set it in the servlet
             }
             myproxyConnectionCleanup.setMap(myproxyConnectionCache);
-            myproxyConnectionCleanup.addRetentionPolicy(new ValidTimestampPolicy());
+            myproxyConnectionCleanup.addRetentionPolicy(new ConnectionCacheRetentionPolicy(myproxyConnectionCache, env.getTransactionStore()));
             myproxyConnectionCleanup.start();
             logger.info("Starting myproxy connection cache cleanup thread");
         }
