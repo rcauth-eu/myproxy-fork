@@ -72,7 +72,6 @@ public class OA2ReadyServlet extends ClientServlet {
 
         UserInfo ui = null;
         boolean getCerts = ((OA2ClientEnvironment) getCE()).getScopes().contains(OA2Scopes.SCOPE_MYPROXY);
-        System.out.println(getClass().getSimpleName() + ": getCerts? " + getCerts);
         if (identifier == null) {
             // Since this is a demo servlet, we don't blow up if there is no identifier found, just can't save anything.
             String msg = "Error: no cookie found. Cannot save certificates";
@@ -94,8 +93,6 @@ public class OA2ReadyServlet extends ClientServlet {
             //  ui = oa2MPService.getUserInfo(atResponse2.getAccessToken().getToken());
             ui = oa2MPService.getUserInfo(identifier);
             if (getCerts) {
-                System.out.println(getClass().getSimpleName() + ": getting a cert");
-
                 assetResponse = oa2MPService.getCert(asset, atResponse2);
             }
             // The general case is to do the call with the identifier if you want the asset store managed.
@@ -108,8 +105,6 @@ public class OA2ReadyServlet extends ClientServlet {
 
         info("2.b. Done! Displaying success page.");
         if (getCerts) {
-            System.out.println(getClass().getSimpleName() + ": displaying the cert");
-
             if (assetResponse.getX509Certificates() == null) {
                 request.setAttribute("certSubject", "(no cert returned)");
             } else {
@@ -120,13 +115,11 @@ public class OA2ReadyServlet extends ClientServlet {
                 request.setAttribute("username", assetResponse.getUsername());
             }
         } else {
-            System.out.println(getClass().getSimpleName() + ": *NOT* displaying the cert");
 
             request.setAttribute("certSubject", "(no cert requested)");
         }
         if (ui != null) {
             String output = JSONUtils.valueToString(ui.toJSon(), 4, 2);
-            System.err.println(getClass().getSimpleName() + " raw JSON=\n" + output);
             request.setAttribute("userinfo", output);
         } else {
             request.setAttribute("userinfo", "no user info returned.");

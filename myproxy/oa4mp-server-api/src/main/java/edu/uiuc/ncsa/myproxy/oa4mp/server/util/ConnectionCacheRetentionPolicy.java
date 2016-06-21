@@ -37,7 +37,6 @@ public class ConnectionCacheRetentionPolicy implements RetentionPolicy {
          */
         Identifier identifier = (Identifier)key;
         boolean rc =  getTransactionStore().containsKey(identifier);
-        System.out.print(getClass().getCanonicalName() + ". retain? " + rc);
         return rc;
     }
 

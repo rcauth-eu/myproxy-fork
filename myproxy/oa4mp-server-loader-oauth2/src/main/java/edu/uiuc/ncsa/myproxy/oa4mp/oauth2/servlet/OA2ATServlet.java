@@ -83,18 +83,14 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
      * @return
      */
     protected long computeRefreshLifetime(OA2ServiceTransaction st2) {
-        System.out.println(getClass().getSimpleName() + ".computeRL: transaction lifetime=" + st2.getRefreshTokenLifetime());
         OA2Client client = (OA2Client) st2.getClient();
         long lifetime = Math.max(st2.getRefreshTokenLifetime(), client.getRtLifetime());
-        System.out.println(getClass().getSimpleName() + ".computeRL: max of client and server =" + lifetime);
 
         OA2SE oa2SE = (OA2SE) getServiceEnvironment();
         if (oa2SE.getRefreshTokenLifetime() <= 0) {
             throw new NFWException("Internal error: the server-wide default for the refresh token lifetime has not been set.");
         }
         lifetime = Math.min(lifetime, oa2SE.getRefreshTokenLifetime());
-        System.out.println(getClass().getSimpleName() + ".computeRL: min of current and last value =" + lifetime);
-
         return lifetime;
 
     }
