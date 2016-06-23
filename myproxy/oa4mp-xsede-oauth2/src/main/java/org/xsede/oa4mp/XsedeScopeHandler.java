@@ -37,8 +37,9 @@ import java.util.logging.Logger;
 public class XsedeScopeHandler extends BasicScopeHandler { 
     public static final String SCOPE_XSEDE = "xsede";
 
-    String OA4MP_USER = "username";
-    String OA4MP_PASSWORD = "password";
+    private String OA4MP_USER = "username";
+    private String OA4MP_PASSWORD = "password";
+    private String authToken;
     MyLoggingFacade myLogger;
 
     public XsedeScopeHandler(String Username, String Password, MyLoggingFacade logger) {
@@ -46,22 +47,12 @@ public class XsedeScopeHandler extends BasicScopeHandler {
         OA4MP_USER = Username;
        	OA4MP_PASSWORD = Password;
         myLogger = logger;
+	resetAuthToken();
     }
 
-    @Override
-    public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException
-    {
-        OA2ServiceTransaction t = (OA2ServiceTransaction) transaction;
+    private void resetAuthToken() {
 
-        myLogger.info("In XSEDE scope handler3: " + getScopes());
-
-        String subject = userInfo.getSub();
-
-        if (subject == null) {
-            // throw new UnsupportedScopeException("No subject was found");
-            return userInfo; // nothing can be done without subject info
-        }
-
+        myLogger.debug("Resetting XCDB authtoken");
         String auth = OA4MP_USER + ":" + OA4MP_PASSWORD;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("ISO-8859-1")));
         String authHeader = "Basic " + new String(encodedAuth);
@@ -72,65 +63,120 @@ public class XsedeScopeHandler extends BasicScopeHandler {
         postRequest.addHeader("accept", "application/json");
 
         postRequest.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
-
         try {
             HttpResponse response = httpClient.execute(postRequest);
 
             if (response.getStatusLine().getStatusCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
-                   + response.getStatusLine().getStatusCode());
+                myLogger.error("Unable to retrieve authentication token from XDCDB: HTTP error: " +
+                    response.getStatusLine().toString());
+                throw new RuntimeException("Unable to retrieve authentication token; HTTP Error");
             }
 
             JsonReader rdr = Json.createReader(response.getEntity().getContent());
             JsonObject obj = rdr.readObject();
-            String token = obj.getJsonArray("result".toString()).getJsonObject(0).getString("token".toString());
+            authToken = obj.getJsonArray("result".toString()).getJsonObject(0).getString("token".toString());
+        } catch (IOException E) {
+            myLogger.error("IOException while trying to retrieve authentication token from XDCDB:"
+                                          + E.toString());
+            throw new RuntimeException("Unable to retrieve authentication token; IOException", E);
+        }
+    }
 
-            auth = OA4MP_USER + ":" + token;
-            encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("ISO-8859-1")));
-            authHeader = "Basic " + new String(encodedAuth);
+    private JsonObject getUserInfo(String subject) {
+        try {
+            String auth = OA4MP_USER + ":" + authToken;
+            byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("ISO-8859-1")));
+            String authHeader = "Basic " + new String(encodedAuth);
 
-            httpClient = new DefaultHttpClient();
+            DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpGet getRequest = new HttpGet("https://api.xsede.org/profile/v1" + "/" + subject);
             getRequest.addHeader("accept", "application/json");
 
             getRequest.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
 
-            response = httpClient.execute(getRequest);
+            HttpResponse response = httpClient.execute(getRequest);
 
             if (response.getStatusLine().getStatusCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
-                   + response.getStatusLine().getStatusCode());
+                myLogger.info("Unable to retrieve userinfo from XDCDB: HTTP error: " +
+                    response.getStatusLine().toString());
+                return null;
             }
 
             // Get user record for "subject" using "token" for password.
 
-            rdr = Json.createReader(response.getEntity().getContent());
-            obj = rdr.readObject();
-            JsonObject profile = obj.getJsonArray("result".toString()).getJsonObject(0);
-            String firstName = profile.getString("first_name".toString());
-            String middleName = profile.getString("middle_name".toString());
-            String lastName = profile.getString("last_name".toString());
-            String email = profile.getString("email".toString());
-            String organization = profile.getString("organization".toString());
-
-            if (t.getScopes().contains(SCOPE_PROFILE)) {
-                myLogger.info("Processing profile scope in XSEDE handler");
-                userInfo.setGiven_name(firstName);
-                userInfo.setMiddle_name(middleName);
-                userInfo.setFamily_name(lastName);
-            }
-
-            if (t.getScopes().contains(SCOPE_EMAIL)) {
-                myLogger.info("Processing email scope in XSEDE handler");
-                userInfo.setEmail(email);
-            }
-
-            if (t.getScopes().contains(SCOPE_XSEDE)) {
-                myLogger.info("Processing xsede scope in XSEDE handler");
-                userInfo.put("xsedeHomeOrganization".toString(), organization);
-            }
+            JsonReader rdr = Json.createReader(response.getEntity().getContent());
+            JsonObject obj = rdr.readObject();
+            return obj.getJsonArray("result".toString()).getJsonObject(0);
         } catch (IOException E) {
-            throw new UnsupportedScopeException("IOException");
+            myLogger.error("IOException while trying to retrieve userinfo from XDCDB:"
+                                          + E.toString());
+            throw new RuntimeException("Unable to retrieve userinfo; IOException", E);
+        }
+    }
+
+    @Override
+    public UserInfo process(UserInfo userInfo, ServiceTransaction transaction) throws UnsupportedScopeException
+    {
+        OA2ServiceTransaction t = (OA2ServiceTransaction) transaction;
+
+        myLogger.info("In XSEDE scope handler9: " + getScopes());
+
+        String subject = t.getUsername();
+
+        if (subject == null) {
+            myLogger.debug("No subject available in transaction");
+            return userInfo; // nothing can be done without subject info
+        }
+
+        // See if userInfo already has the requisite info
+        myLogger.debug("Profile:"+t.getScopes().contains(SCOPE_PROFILE)+":"+
+            userInfo.getGiven_name()+":"+userInfo.getMiddle_name()+":"+userInfo.getFamily_name());
+        myLogger.debug("EMAIL:"+userInfo.getEmail());
+        myLogger.debug("XSEDE:"+userInfo.getString("xsedeHomeOrganization".toString()));
+
+        if ((!t.getScopes().contains(SCOPE_PROFILE) ||
+                 (userInfo.getGiven_name() != null && userInfo.getMiddle_name() != null &&
+                  userInfo.getFamily_name() != null))
+            &&
+            (!t.getScopes().contains(SCOPE_EMAIL) || (userInfo.getEmail() != null))
+            &&
+            (!t.getScopes().contains(SCOPE_XSEDE) || (userInfo.getString("xsedeHomeOrganization".toString()) != null))) {
+            myLogger.info("Info for all claims in requested scopes already " +
+                "available in userInfo; skipping call to XDCDB");
+            return userInfo;
+        }
+
+        // One or more requisite info missing; retrieve from XCDB and set
+        JsonObject profile = getUserInfo(subject);
+        if (profile == null) {
+            resetAuthToken();
+            profile = getUserInfo(subject);
+            if (profile == null) {
+                myLogger.error("Unable to retrieve userinfo from XDCDB after resetting authtoken");
+                throw new RuntimeException("Unable to retrieve userinfo");
+            }
+        }
+        String firstName = profile.getString("first_name".toString());
+        String middleName = profile.getString("middle_name".toString());
+        String lastName = profile.getString("last_name".toString());
+        String email = profile.getString("email".toString());
+        String organization = profile.getString("organization".toString());
+
+        if (t.getScopes().contains(SCOPE_PROFILE)) {
+            myLogger.info("Processing profile scope in XSEDE handler");
+            userInfo.setGiven_name(firstName);
+            userInfo.setMiddle_name(middleName);
+            userInfo.setFamily_name(lastName);
+        }
+
+        if (t.getScopes().contains(SCOPE_EMAIL)) {
+            myLogger.info("Processing email scope in XSEDE handler");
+            userInfo.setEmail(email);
+        }
+
+        if (t.getScopes().contains(SCOPE_XSEDE)) {
+            myLogger.info("Processing xsede scope in XSEDE handler");
+            userInfo.put("xsedeHomeOrganization".toString(), organization);
         }
 
         return userInfo;
