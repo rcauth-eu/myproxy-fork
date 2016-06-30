@@ -6,6 +6,7 @@ import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.GeneralSecurityException;
 import java.util.Map;
 
 import static net.oauth.OAuth.OAUTH_TOKEN;
@@ -22,7 +23,7 @@ public class AbstractAuthorizationServletImpl extends AbstractAuthorizationServl
     }
 
     @Override
-    public String createCallback(ServiceTransaction trans, Map<String,String> params) {
+    public String createCallback(ServiceTransaction trans, Map<String, String> params) {
         // FIXME!! Basic spec should return extra parameters it does not recognize?
         String cb = trans.getCallback().toString();
         return cb + (cb.indexOf("?") == -1 ? "?" : "&") + OAUTH_TOKEN + "=" + trans.getIdentifierString() + "&" + OAUTH_VERIFIER + "=" + trans.getVerifier().getToken();
@@ -30,6 +31,7 @@ public class AbstractAuthorizationServletImpl extends AbstractAuthorizationServl
 
     /**
      * Spec says we do the cert request in the authorization servlet.
+     *
      * @param trans
      * @param statusString
      * @throws Throwable
@@ -37,5 +39,15 @@ public class AbstractAuthorizationServletImpl extends AbstractAuthorizationServl
     @Override
     protected void doRealCertRequest(ServiceTransaction trans, String statusString) throws Throwable {
         doCertRequest(trans, statusString);
+    }
+
+
+    @Override
+    protected void setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException {
+        createMPConnection(trans.getIdentifier(), username, password, trans.getLifetime());
+
+        if (hasMPConnection(trans.getIdentifier())) {
+            getMPConnection(trans.getIdentifier()).close();
+        }
     }
 }

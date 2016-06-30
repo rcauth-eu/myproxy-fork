@@ -32,6 +32,7 @@ public class OA2AuthorizedServlet extends AbstractInitServlet {
 
     @Override
     protected void doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
+        printAllParameters(httpServletRequest);
         String callback = httpServletRequest.getParameter(OA2Constants.REDIRECT_URI);
         if (httpServletRequest.getParameterMap().containsKey(OA2Constants.REQUEST_URI)) {
             throw new OA2RedirectableError(OA2Errors.REQUEST_URI_NOT_SUPPORTED,
@@ -174,8 +175,8 @@ public class OA2AuthorizedServlet extends AbstractInitServlet {
         st.setCallback(URI.create(params.get(REDIRECT_URI)));
         // fine if the nonce is null or empty, just set what they sent.
         st.setNonce(nonce);
-                // We can't support this because the spec says we must re-authenticate the user. We sould have to track this
-        // in all subsequest attempts. Since all requests have an expiration date, this parameter is redundant in any case.
+        // We can't support this because the spec says we must re-authenticate the user. We should have to track this
+        // in all subsequent attempts. Since all requests have an expiration date, this parameter is redundant in any case.
          if(agResponse.getParameters().containsKey(OA2Constants.MAX_AGE)){
              throw new OA2RedirectableError(OA2Errors.INVALID_REQUEST, "The " + OA2Constants.MAX_AGE +" parameter is not supported at this time.", state, givenRedirect);
          }

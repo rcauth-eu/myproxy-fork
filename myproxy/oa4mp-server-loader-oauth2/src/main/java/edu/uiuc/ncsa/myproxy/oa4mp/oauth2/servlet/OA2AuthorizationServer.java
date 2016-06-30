@@ -1,6 +1,10 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 
+import edu.uiuc.ncsa.myproxy.MPSingleConnectionProvider;
+import edu.uiuc.ncsa.myproxy.MyProxyConnectable;
+import edu.uiuc.ncsa.myproxy.MyProxyLogon;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractAuthorizationServlet;
 import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
@@ -22,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.Map;
 
@@ -104,7 +109,7 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         Map<String, String> map = getFirstParameters(request);
 
-        //   printAllParameters(request);
+        printAllParameters(request);
         if (map.containsKey(OA2Constants.RESPONSE_TYPE)) {
             // Probably means this is an initial request. Pass it along to the init servlet to
             // unscramble it.
@@ -186,6 +191,29 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     @Override
     protected void doRealCertRequest(ServiceTransaction trans, String statusString) throws Throwable {
         // do nix here in this protocol.
+    }
+
+    public static class MyMyProxyLogon extends MyProxyLogon{
+
+        public String getPassphrase(){return passphrase;}
+    }
+
+    @Override
+    protected void setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException {
+        if (((OA2SE) getServiceEnvironment()).isTwoFactorSupportEnabled()) {
+         // Stash username and password in an bogus MyProxy logon instance.
+            MyMyProxyLogon myProxyLogon = new MyMyProxyLogon();
+            myProxyLogon.setUsername(username);
+            myProxyLogon.setPassphrase(password);
+            MyProxyConnectable mpc = new MPSingleConnectionProvider.MyProxyLogonConnection(myProxyLogon);
+            mpc.setIdentifier(trans.getIdentifier());
+            getMyproxyConnectionCache().add(mpc);
+        }else{
+            createMPConnection(trans.getIdentifier(), username, password, trans.getLifetime());
+            if (hasMPConnection(trans.getIdentifier())) {
+                getMPConnection(trans.getIdentifier()).close();
+            }
+        }
     }
 }
 

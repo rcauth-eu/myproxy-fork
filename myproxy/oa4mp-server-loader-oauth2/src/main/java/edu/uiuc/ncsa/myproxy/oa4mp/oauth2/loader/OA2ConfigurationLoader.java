@@ -97,7 +97,8 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     getScopes(),
                     getScopeHandler(),
                     getLdapConfiguration(),
-                    isRefreshTokenEnabled());
+                    isRefreshTokenEnabled(),
+                    isTwoFactorSupportEnabled());
             if (getScopeHandler() instanceof BasicScopeHandler) {
                 ((BasicScopeHandler) getScopeHandler()).setOa2SE((OA2SE) se);
             }
@@ -224,6 +225,25 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
             }
         }
         return refreshTokenEnabled;
+    }
+
+    Boolean twoFactorSupportEnabled = null;
+    public boolean isTwoFactorSupportEnabled(){
+     if(twoFactorSupportEnabled == null){
+         String x = Configurations.getFirstAttribute(cn, ENABLE_TWO_FACTOR_SUPPORT);
+         if (x == null) {
+             twoFactorSupportEnabled = Boolean.FALSE;
+         } else {
+             try {
+                 twoFactorSupportEnabled = Boolean.valueOf(x);
+             } catch (Throwable t) {
+                 info("Could not parse two factor enabled attribute. Setting default to false.");
+                 twoFactorSupportEnabled = Boolean.FALSE;
+             }
+         }
+
+     }
+        return twoFactorSupportEnabled;
     }
 
     public void setRefreshTokenEnabled(boolean refreshTokenEnabled) {

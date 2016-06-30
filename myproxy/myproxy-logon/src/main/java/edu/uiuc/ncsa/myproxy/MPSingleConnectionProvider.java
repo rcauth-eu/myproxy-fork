@@ -102,6 +102,10 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
             }
         }
 
+        public MyProxyLogon getMyProxyLogon() {
+            return myProxyLogon;
+        }
+
         MyProxyLogon myProxyLogon;
 
 

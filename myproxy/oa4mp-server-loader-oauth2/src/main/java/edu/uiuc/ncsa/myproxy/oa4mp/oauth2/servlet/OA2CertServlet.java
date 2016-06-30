@@ -1,7 +1,9 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
+import edu.uiuc.ncsa.myproxy.MPSingleConnectionProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2AuthorizationServer.MyMyProxyLogon;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.ACS2;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -140,7 +142,7 @@ public class OA2CertServlet extends ACS2 {
         }
         checkClient(t.getClient());
         // If refresh tokens are enabled on this server, use them against their timeout value.
-        if (((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) {
+        if (((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled() && t.getRefreshToken()!=null) {
             checkTimestamp(t.getRefreshToken().getToken(), t.getRefreshTokenLifetime());
         } else {
             // Otherwise, use the access token and the server default.
@@ -166,7 +168,25 @@ public class OA2CertServlet extends ACS2 {
         }
 */
         OA2ServiceTransaction st = (OA2ServiceTransaction) trans;
-        checkMPConnection(st);
+        OA2SE oa2SE = (OA2SE)getServiceEnvironment();
+        System.err.println(getClass().getSimpleName() + ".doRealCR: two factor support on? " + oa2SE.isTwoFactorSupportEnabled());
+        if(!oa2SE.isTwoFactorSupportEnabled()){
+            checkMPConnection(st);
+        } else{
+           // The assumption at this point is that the connection information has been stashed, but has not been
+            // used since the password is valid exactly once. Here is where we set up the connection once
+            // and for all.
+            System.err.println(getClass().getSimpleName() + ".doRealCR: trans = " + st);
+            if(!getMyproxyConnectionCache().containsKey(st.getIdentifier())){
+                throw new GeneralException("No cached my proxy object with identifier " + st.getIdentifierString());
+            }
+            MPSingleConnectionProvider.MyProxyLogonConnection mpc = (MPSingleConnectionProvider.MyProxyLogonConnection)getMyproxyConnectionCache().get(st.getIdentifier()).getValue();
+            System.err.println(getClass().getSimpleName() + ".doRealCR: mpc = " + mpc);
+            MyMyProxyLogon myProxyLogon = (MyMyProxyLogon)mpc.getMyProxyLogon();
+            System.err.println(getClass().getSimpleName() + ".doRealCR: mymyproxy = " + myProxyLogon);
+            getMyproxyConnectionCache().remove(mpc.getIdentifier());
+            createMPConnection(trans.getIdentifier(), myProxyLogon.getUsername(), myProxyLogon.getPassphrase(), trans.getLifetime());
+        }
         doCertRequest(st, statusString);
     }
 

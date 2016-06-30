@@ -297,13 +297,10 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         String statusString = " transaction =" + trans.getIdentifierString() + " and client=" + trans.getClient().getIdentifierString();
         trans.setVerifier(MyProxyDelegationServlet.getServiceEnvironment().getTokenForge().getVerifier());
         MyProxyDelegationServlet.getServiceEnvironment().getTransactionStore().save(trans);
-
-        createMPConnection(trans.getIdentifier(), userName, password, trans.getLifetime());
+        setupMPConnection(trans, userName, password);
         // Change is to close this connection after verifying it works.
         doRealCertRequest(trans, statusString); // Oauth 1 will get the cert, OAuth 2 will do nothing here, getting the cert later.
-        if (hasMPConnection(trans.getIdentifier())) {
-            getMPConnection(trans.getIdentifier()).close();
-        }
+
         debug("4.a. verifier = " + trans.getVerifier() + ", " + statusString);
         String cb = createCallback(trans, getFirstParameters(request));
         info("4.a. starting redirect to " + cb + ", " + statusString);
@@ -311,4 +308,5 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         info("4.b. Redirect to callback " + cb + " ok, " + statusString);
     }
 
+    abstract protected void  setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException ;
 }

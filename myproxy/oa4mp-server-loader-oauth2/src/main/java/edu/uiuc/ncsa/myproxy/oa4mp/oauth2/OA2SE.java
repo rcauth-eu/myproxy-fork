@@ -49,7 +49,8 @@ public class OA2SE extends ServiceEnvironmentImpl {
                  Collection<String> scopes,
                  ScopeHandler scopeHandler,
                  LDAPConfiguration ldapConfiguration,
-                 boolean isRefreshTokenEnabled) {
+                 boolean isRefreshTokenEnabled,
+                 boolean twoFactorSupportEnabled) {
         super(logger,
                 mfp,
                 tsp,
@@ -69,8 +70,8 @@ public class OA2SE extends ServiceEnvironmentImpl {
         if (0 < rtLifetime) {
             this.rtLifetime = rtLifetime;
         }
-        if(clientSecretLength <0){
-            throw new MyConfigurationException("Error: The client secret length (=" +  clientSecretLength + ") is invalid. It must be a positive integer.");
+        if (clientSecretLength < 0) {
+            throw new MyConfigurationException("Error: The client secret length (=" + clientSecretLength + ") is invalid. It must be a positive integer.");
         }
         this.clientSecretLength = clientSecretLength;
         this.scopes = scopes;
@@ -79,8 +80,16 @@ public class OA2SE extends ServiceEnvironmentImpl {
 
         this.refreshTokenEnabled = isRefreshTokenEnabled;
         this.ldapConfiguration = ldapConfiguration;
+        this.twoFactorSupportEnabled = twoFactorSupportEnabled;
     }
-   boolean refreshTokenEnabled = false;
+
+    public boolean isTwoFactorSupportEnabled() {
+        return twoFactorSupportEnabled;
+    }
+
+
+    boolean twoFactorSupportEnabled = false;
+    boolean refreshTokenEnabled = false;
 
     public boolean isRefreshTokenEnabled() {
         return refreshTokenEnabled;
@@ -125,7 +134,8 @@ public class OA2SE extends ServiceEnvironmentImpl {
     public void setScopeHandler(ScopeHandler scopeHandler) {
         this.scopeHandler = scopeHandler;
     }
-    public boolean hasScopeHandler(){
+
+    public boolean hasScopeHandler() {
         return scopeHandler != null;
     }
 

@@ -51,6 +51,7 @@ please sign in with your username and password.
           <p><font color="red">${retryMessage}</font></p>
           <input type="hidden" id="status" name="${action}" value="${actionOk}"/>
           <input type="hidden" id="token" name="${tokenKey}" value="${authorizationGrant}"/>
+          <input type="hidden" id="state" name="${stateKey}" value="${authorizationState}"/>
         </form>
 
 <%@ include file="assets/includes/end.html" %>

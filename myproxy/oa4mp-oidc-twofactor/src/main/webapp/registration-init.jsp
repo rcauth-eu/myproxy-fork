@@ -19,7 +19,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ include file="assets/includes/start.html" %>
 
-    <form action="/twofactor/register" method="post">
+    <form action="/oidc2fca/register" method="post">
         <p>NCSA Two Factor OAuth Client Registration Form</p>
 
         <p> This page allows you to register your NCSA Two Factor

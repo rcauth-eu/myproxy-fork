@@ -75,7 +75,8 @@
                 href="http://grid.ncsa.illinois.edu/myproxy/oauth/site/apidocs/edu/uiuc/ncsa/myproxy/oa4mp/oauth2/OA2ServiceTransaction.html">OA2ServiceTransaction</a>,
         so you can see what information is available to the method. Note that not every property in the service
         transaction
-        will be available. For instance, the user might not have gotten a protected assest (i.e. a certificate) before
+        will be available. <b>This also means that the current user's name is available in the service transaction.</b>
+        For instance, the user might not have gotten a protected assest (i.e. a certificate) before
         the call to the userinfo endpoint was made. The transaction also has a getScopes() call. This returns the scopes
         requested by the user for this specific transaction.
     </li>
