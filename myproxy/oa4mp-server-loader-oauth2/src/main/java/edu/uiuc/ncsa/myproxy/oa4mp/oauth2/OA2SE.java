@@ -50,7 +50,8 @@ public class OA2SE extends ServiceEnvironmentImpl {
                  ScopeHandler scopeHandler,
                  LDAPConfiguration ldapConfiguration,
                  boolean isRefreshTokenEnabled,
-                 boolean twoFactorSupportEnabled) {
+                 boolean twoFactorSupportEnabled,
+                 long maxClientRefreshTokenLifetime) {
         super(logger,
                 mfp,
                 tsp,
@@ -81,12 +82,18 @@ public class OA2SE extends ServiceEnvironmentImpl {
         this.refreshTokenEnabled = isRefreshTokenEnabled;
         this.ldapConfiguration = ldapConfiguration;
         this.twoFactorSupportEnabled = twoFactorSupportEnabled;
+        this.maxClientRefreshTokenLifetime = maxClientRefreshTokenLifetime;
     }
 
     public boolean isTwoFactorSupportEnabled() {
         return twoFactorSupportEnabled;
     }
 
+    public long getMaxClientRefreshTokenLifetime() {
+        return maxClientRefreshTokenLifetime;
+    }
+
+    long  maxClientRefreshTokenLifetime = 0L;
 
     boolean twoFactorSupportEnabled = false;
     boolean refreshTokenEnabled = false;
@@ -99,7 +106,7 @@ public class OA2SE extends ServiceEnvironmentImpl {
         this.refreshTokenEnabled = refreshTokenEnabled;
     }
 
-    long rtLifetime = 15 * 24 * 3600 * 1000L;
+    long rtLifetime = 15 * 24 * 3600 * 1000L; // default is 15 days.
 
     /**
      * The default if nothing is specified is 15 days.

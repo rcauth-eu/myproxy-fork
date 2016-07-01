@@ -129,13 +129,14 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
                 // First pass through the system should have the system default as the refresh token lifetime.
                 st2.setRefreshTokenLifetime(((OA2SE)getServiceEnvironment()).getRefreshTokenLifetime());
                 rt.setExpiresIn(computeRefreshLifetime(st2));
+                System.out.println(getClass().getSimpleName() + ".doit: expires in=" + rt.getExpiresIn());
                 st2.setRefreshTokenValid(true);
             }else{
                 // Do not return a refresh token.
                  atResponse.setRefreshToken(null);
             }
             getTransactionStore().save(st2);
-
+            atResponse.write(response);
             return;
         }
         warn("Error: grant type was not recognized. Request rejected.");

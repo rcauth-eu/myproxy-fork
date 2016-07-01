@@ -23,7 +23,16 @@ public abstract class AbstractAccessTokenServlet extends MyProxyDelegationServle
         doDelegation(httpServletRequest, httpServletResponse);
     }
 
-
+    /**
+     * Note that this method does <b>not</b> write the response (using the issuer response). You must
+     * do that in your implementation after you have finished all processing. If we were to do that here,
+     * the response would be written prematurely.
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @return
+     * @throws Throwable
+     * @throws ServletException
+     */
     protected IssuerTransactionState doDelegation(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable, ServletException {
 
         info("5.a. Starting access token exchange");
@@ -55,7 +64,7 @@ public abstract class AbstractAccessTokenServlet extends MyProxyDelegationServle
         } catch (GeneralException e) {
             throw new ServletException("Error saving transaction", e);
         }
-        atResp.write(httpServletResponse);
+      //  atResp.write(httpServletResponse);
         info("5.b. done with access token exchange with " + cc);
         IssuerTransactionState transactionState = new IssuerTransactionState(httpServletRequest,
                 httpServletResponse,

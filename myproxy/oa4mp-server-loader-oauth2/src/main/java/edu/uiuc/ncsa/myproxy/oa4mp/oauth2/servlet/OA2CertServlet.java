@@ -141,13 +141,9 @@ public class OA2CertServlet extends ACS2 {
             throw new OA2GeneralError(OA2Errors.INVALID_TOKEN, "Invalid access token. Request refused", HttpStatus.SC_UNAUTHORIZED);
         }
         checkClient(t.getClient());
-        // If refresh tokens are enabled on this server, use them against their timeout value.
-        if (((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled() && t.getRefreshToken()!=null) {
-            checkTimestamp(t.getRefreshToken().getToken(), t.getRefreshTokenLifetime());
-        } else {
-            // Otherwise, use the access token and the server default.
-            checkTimestamp(accessToken.getToken());
-        }
+        // Access tokens must be valid in order to get a cert. If the token is invalid, the user must
+        // get a valid one using the refresh token.
+        checkTimestamp(accessToken.getToken());
         return t;
     }
 
@@ -168,21 +164,21 @@ public class OA2CertServlet extends ACS2 {
         }
 */
         OA2ServiceTransaction st = (OA2ServiceTransaction) trans;
-        OA2SE oa2SE = (OA2SE)getServiceEnvironment();
+        OA2SE oa2SE = (OA2SE) getServiceEnvironment();
         System.err.println(getClass().getSimpleName() + ".doRealCR: two factor support on? " + oa2SE.isTwoFactorSupportEnabled());
-        if(!oa2SE.isTwoFactorSupportEnabled()){
+        if (!oa2SE.isTwoFactorSupportEnabled()) {
             checkMPConnection(st);
-        } else{
-           // The assumption at this point is that the connection information has been stashed, but has not been
+        } else {
+            // The assumption at this point is that the connection information has been stashed, but has not been
             // used since the password is valid exactly once. Here is where we set up the connection once
             // and for all.
             System.err.println(getClass().getSimpleName() + ".doRealCR: trans = " + st);
-            if(!getMyproxyConnectionCache().containsKey(st.getIdentifier())){
+            if (!getMyproxyConnectionCache().containsKey(st.getIdentifier())) {
                 throw new GeneralException("No cached my proxy object with identifier " + st.getIdentifierString());
             }
-            MPSingleConnectionProvider.MyProxyLogonConnection mpc = (MPSingleConnectionProvider.MyProxyLogonConnection)getMyproxyConnectionCache().get(st.getIdentifier()).getValue();
+            MPSingleConnectionProvider.MyProxyLogonConnection mpc = (MPSingleConnectionProvider.MyProxyLogonConnection) getMyproxyConnectionCache().get(st.getIdentifier()).getValue();
             System.err.println(getClass().getSimpleName() + ".doRealCR: mpc = " + mpc);
-            MyMyProxyLogon myProxyLogon = (MyMyProxyLogon)mpc.getMyProxyLogon();
+            MyMyProxyLogon myProxyLogon = (MyMyProxyLogon) mpc.getMyProxyLogon();
             System.err.println(getClass().getSimpleName() + ".doRealCR: mymyproxy = " + myProxyLogon);
             getMyproxyConnectionCache().remove(mpc.getIdentifier());
             createMPConnection(trans.getIdentifier(), myProxyLogon.getUsername(), myProxyLogon.getPassphrase(), trans.getLifetime());

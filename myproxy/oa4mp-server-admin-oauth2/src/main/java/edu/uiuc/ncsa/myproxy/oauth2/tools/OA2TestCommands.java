@@ -250,7 +250,7 @@ public class OA2TestCommands extends TestCommands {
     protected void printTokens(){
         say(" access token = " + dummyAsset.getAccessToken().getToken());
         say("refresh token = " + dummyAsset.getRefreshToken().getToken());
-        say("   expires in = " + dummyAsset.getRefreshToken().getExpiresIn() + "ms");
+        say("RT expires in = " + dummyAsset.getRefreshToken().getExpiresIn() + " ms.");
         Date startDate = DateUtils.getDate(dummyAsset.getRefreshToken().getToken());
         startDate.setTime(startDate.getTime() + dummyAsset.getRefreshToken().getExpiresIn());
         say("   expires at " + startDate);

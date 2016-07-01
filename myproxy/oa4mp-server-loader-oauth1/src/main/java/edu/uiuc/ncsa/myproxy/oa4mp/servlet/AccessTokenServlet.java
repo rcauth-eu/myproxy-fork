@@ -1,6 +1,7 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.servlet;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractAccessTokenServlet;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.IssuerTransactionState;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.TransactionNotFoundException;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
@@ -8,6 +9,9 @@ import edu.uiuc.ncsa.security.delegation.server.request.ATResponse;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
 import edu.uiuc.ncsa.security.delegation.token.Verifier;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
@@ -38,5 +42,12 @@ public class AccessTokenServlet extends AbstractAccessTokenServlet {
             throw new GeneralException(msg);
         }
         return transaction;
+    }
+
+    @Override
+    protected IssuerTransactionState doDelegation(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable, ServletException {
+        IssuerTransactionState state = super.doDelegation(httpServletRequest, httpServletResponse);
+        state.getIssuerResponse().write(httpServletResponse);
+        return state;
     }
 }

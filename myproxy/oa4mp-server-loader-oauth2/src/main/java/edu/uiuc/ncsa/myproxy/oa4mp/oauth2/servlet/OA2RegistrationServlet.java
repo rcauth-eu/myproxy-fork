@@ -61,7 +61,7 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
         }
         if (rawRTLifetime == null || rawRTLifetime.length() == 0) {
             // This effectively means there is no refresh token set.
-            client.setRtLifetime(Long.MIN_VALUE);
+            client.setRtLifetime(0); // FIXES CIL-309 (partial)
         } else {
             long clientRtLifetime = 0L;
             boolean rtLifetimeOK = true;
@@ -81,7 +81,7 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
                     info("Client requested illegal value for refresh token lifetime at registration of \"" + rawRTLifetime + "\"");
                 }
             }
-            client.setRtLifetime(clientRtLifetime);
+            client.setRtLifetime(Math.min(getOA2SE().getMaxClientRefreshTokenLifetime(), clientRtLifetime)); // FIX CIL-309 (partial)
         }
         // Now generate the client secret. We generate this here:
         byte[] bytes = new byte[getOA2SE().getClientSecretLength()];

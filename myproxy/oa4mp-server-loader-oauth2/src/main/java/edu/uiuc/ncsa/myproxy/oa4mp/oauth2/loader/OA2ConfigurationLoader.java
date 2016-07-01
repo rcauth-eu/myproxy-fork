@@ -210,6 +210,20 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
     }
 
+    long maxClientRefreshTokenLifetime = -1L;
+    protected long getMaxClientRefreshTokenLifetime(){
+        if (maxClientRefreshTokenLifetime < 0) {
+                  String x = Configurations.getFirstAttribute(cn, MAX_CLIENT_REFRESH_TOKEN_LIFETIME);
+                  if (x != null) {
+                      try {
+                          maxClientRefreshTokenLifetime = Long.parseLong(x) * 1000; // The configuration file has this in seconds. Internally this is ms.
+                      } catch (Throwable t) {
+                          maxClientRefreshTokenLifetime = 13*30*24*3600*1000L; // default of 13 months.
+                      }
+                  }
+              }
+              return maxClientRefreshTokenLifetime;
+    }
     public boolean isRefreshTokenEnabled() {
         if (refreshTokenEnabled == null) {
             String x = Configurations.getFirstAttribute(cn, REFRESH_TOKEN_ENABLED);
