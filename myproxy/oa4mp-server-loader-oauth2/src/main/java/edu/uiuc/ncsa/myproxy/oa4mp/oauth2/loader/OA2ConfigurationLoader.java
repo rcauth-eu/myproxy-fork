@@ -98,7 +98,8 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     getScopeHandler(),
                     getLdapConfiguration(),
                     isRefreshTokenEnabled(),
-                    isTwoFactorSupportEnabled());
+                    isTwoFactorSupportEnabled(),
+                    getMaxClientRefreshTokenLifetime());
             if (getScopeHandler() instanceof BasicScopeHandler) {
                 ((BasicScopeHandler) getScopeHandler()).setOa2SE((OA2SE) se);
             }
