@@ -2,6 +2,9 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader;
 
 import edu.uiuc.ncsa.security.util.ssl.SSLConfiguration;
 
+import javax.naming.Name;
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +14,9 @@ import java.util.List;
  */
 public class LDAPConfiguration {
     String server;
-    int port;
+    Integer port = null;
     SSLConfiguration sslConfiguration;
+
 
     public String getSecurityPrincipal() {
         return securityPrincipal;
@@ -69,11 +73,11 @@ public class LDAPConfiguration {
 
     String password;
 
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         this.port = port;
     }
 
@@ -91,5 +95,34 @@ public class LDAPConfiguration {
 
     public void setSslConfiguration(SSLConfiguration sslConfiguration) {
         this.sslConfiguration = sslConfiguration;
+    }
+
+    /**
+     * This will return the corresponding number for the security authorization (see constants in {@link LDAPConfigurationUtil})
+     * which can be used for switch statements.
+     * @return
+     */
+    public int getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(int authType) {
+        this.authType = authType;
+    }
+
+    int authType = LDAPConfigurationUtil.LDAP_AUTH_UNSPECIFIED_KEY;
+    String contextName;
+
+    /**
+     * The name of the context for the JNDI {@link LdapContext#search(Name, Attributes)} function. If this is omitted
+     * in the configuration, then it is set to the empty string.
+     * @return
+     */
+    public String getContextName() {
+        return contextName;
+    }
+
+    public void setContextName(String contextName) {
+        this.contextName = contextName;
     }
 }

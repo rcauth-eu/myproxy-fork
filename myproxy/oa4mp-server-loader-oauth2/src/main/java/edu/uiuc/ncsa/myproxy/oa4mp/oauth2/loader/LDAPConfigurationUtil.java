@@ -22,8 +22,17 @@ public class LDAPConfigurationUtil {
     public static final String LDAP_SEARCH_ATTRIBUTE_TAG = "attribute";
     public static final String LDAP_SECURITY_PRINCIPAL_TAG = "principal";
     public static final String LDAP_PORT_TAG = "port";
+    public static final String LDAP_CONTEXT_NAME_TAG = "contextName";
     public static final String LDAP_ENABLED_TAG = "enabled";
     public static final int DEFAULT_PORT = 636;
+    public static final String LDAP_AUTH_TYPE = "authorizationType";
+    public static final String LDAP_AUTH_NONE = "none";
+    public static final int LDAP_AUTH_UNSPECIFIED_KEY = 0;
+    public static final int LDAP_AUTH_NONE_KEY = 1;
+    public static final String LDAP_AUTH_SIMPLE = "simple";
+    public static final int LDAP_AUTH_SIMPLE_KEY = 10;
+    public static final String LDAP_AUTH_STRONG = "strong";
+    public static final int LDAP_AUTH_STRONG_KEY = 100;
 
     public static LDAPConfiguration getLdapConfiguration(MyLoggingFacade logger, ConfigurationNode node) {
         LDAPConfiguration ldapConfiguration = new LDAPConfiguration();
@@ -40,24 +49,28 @@ public class LDAPConfigurationUtil {
         ldapConfiguration.setEnabled(true);
         SSLConfiguration sslConfiguration = SSLConfigurationUtil.getSSLConfiguration(logger, ldapNode);
         ldapConfiguration.setSslConfiguration(sslConfiguration);
-        //             sslKeystoreConfiguration.setKeystore(getFirstAttribute(cn2, SSL_KEYSTORE_PATH));
 
         ldapConfiguration.setServer(getNodeValue(ldapNode, LDAP_ADDRESS_TAG));
+        String x = getNodeValue(ldapNode, LDAP_CONTEXT_NAME_TAG);
+        ldapConfiguration.setContextName(x == null ? "" : x); // set to empty string if missing.
         ldapConfiguration.setSecurityPrincipal(getNodeValue(ldapNode, LDAP_SECURITY_PRINCIPAL_TAG));
         // Do stuff related to searching
         ConfigurationNode attributeNode = getFirstNode(ldapNode, LDAP_SEARCH_ATTRIBUTES_TAG);
-        for (int i = 0; i < attributeNode.getChildrenCount(); i++) {
-            // only get the elements tagged as attributes in case others get added in the future.
-            if(LDAP_SEARCH_ATTRIBUTE_TAG.equals(attributeNode.getChild(i).getName())) {
-                Object kid = attributeNode.getChild(i).getValue();
-                if (kid != null) {
-                    ldapConfiguration.getSearchAttributes().add(kid.toString());
+        if (attributeNode == null) {
+            ldapConfiguration.setSearchAttributes(null);
+        } else {
+            for (int i = 0; i < attributeNode.getChildrenCount(); i++) {
+                // only get the elements tagged as attributes in case others get added in the future.
+                if (LDAP_SEARCH_ATTRIBUTE_TAG.equals(attributeNode.getChild(i).getName())) {
+                    Object kid = attributeNode.getChild(i).getValue();
+                    if (kid != null) {
+                        ldapConfiguration.getSearchAttributes().add(kid.toString());
+                    }
                 }
             }
         }
-
         ldapConfiguration.setSearchBase(getNodeValue(ldapNode, LDAP_SEARCH_BASE_TAG));
-        ldapConfiguration.setPort(DEFAULT_PORT);
+        //   ldapConfiguration.setPort(DEFAULT_PORT);
 
         String port = getNodeValue(ldapNode, LDAP_PORT_TAG);
 
@@ -66,16 +79,30 @@ public class LDAPConfigurationUtil {
                 ldapConfiguration.setPort(Integer.parseInt(port));
             }
         } catch (Throwable t) {
-            logger.warn("Could not parse port \"" + port + "\" for the LDAP handler. Using default of " + DEFAULT_PORT);
+            logger.warn("Could not parse port \"" + port + "\" for the LDAP handler. Using default of no port.");
         }
 
         ldapConfiguration.setPassword(getNodeValue(ldapNode, LDAP_PASSWORD_TAG));
-        String x = getFirstAttribute(ldapNode, LDAP_ENABLED_TAG);
+        x = getFirstAttribute(ldapNode, LDAP_ENABLED_TAG);
         if (x != null) {
             try {
                 ldapConfiguration.setEnabled(Boolean.parseBoolean(x));
             } catch (Throwable t) {
                 logger.warn("Could not parsed enabled flag value of \"" + x + "\". Assuming LDAP is enabled.");
+            }
+        }
+        x = getFirstAttribute(ldapNode, LDAP_AUTH_TYPE);
+        ldapConfiguration.setAuthType(LDAP_AUTH_UNSPECIFIED_KEY); // default
+        if (x != null) {
+            // If specified, figure out what they want.
+            if (x.equals(LDAP_AUTH_NONE)) {
+                ldapConfiguration.setAuthType(LDAP_AUTH_NONE_KEY);
+            }
+            if (x.equals(LDAP_AUTH_SIMPLE)) {
+                ldapConfiguration.setAuthType(LDAP_AUTH_SIMPLE_KEY);
+            }
+            if (x.equals(LDAP_AUTH_STRONG)) {
+                ldapConfiguration.setAuthType(LDAP_AUTH_STRONG_KEY);
             }
         }
         logger.info("LDAP configuration loaded.");
