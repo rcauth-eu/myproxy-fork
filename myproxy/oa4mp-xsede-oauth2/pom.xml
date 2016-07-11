@@ -13,6 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
     <artifactId>oa4mp-xsede-oauth2</artifactId>
     <name>OAuth 2/Open ID Connect support for the XSEDE client</name>
