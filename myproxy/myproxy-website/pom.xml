@@ -9,7 +9,7 @@
           -->
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <!-- The version number reflects the currently released project. -->
-    <version>3.3-SNAPSHOT</version>
+    <version>3.4-SNAPSHOT</version>
 
     <artifactId>myproxy-website</artifactId>
     <packaging>jar</packaging>

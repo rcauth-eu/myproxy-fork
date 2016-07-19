@@ -12,7 +12,7 @@
          The version number reflects the currently released project.
          THIS WILL BE DISPLAYED ON THE SITE AS THE CURRENT VERSION NUMBER AT THE TOP OF EACH PAGE!
      -->
-    <version>3.3-SNAPSHOT</version>
+    <version>3.4-SNAPSHOT</version>
 
     <artifactId>oa4mp-website</artifactId>
     <packaging>jar</packaging>
@@ -158,7 +158,7 @@
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
@@ -168,7 +168,7 @@
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-loader-oauth2</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
