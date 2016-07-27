@@ -31,7 +31,7 @@
 </div>
 <br clear="all"/>
 
-<div class="boxheader">Welcome to the XSEDE's  Client Authorization Page</div>
+<div class="boxheader">Welcome to the XSEDE's Client Authorization Page</div>
 
 <div class="authbox">
     <b>Science Gateway Access</b><br>
@@ -88,11 +88,14 @@
                         </tr>
 
                     </table>
-            <!-- Close sign in table -->
-            <input type="hidden" id="status" name="${action}"
-                   value="${actionOk}"/>
-            <input type="hidden" id="token" name="${tokenKey}" value="${authorizationGrant}"/>
-            </td>
+                    <!-- Close sign in table -->
+                    <input type="hidden" id="status" name="${action}"
+                           value="${actionOk}"/>
+                    <input type="hidden" id="token" name="${tokenKey}" value="${authorizationGrant}"/>
+                    <input type="hidden" id="state" name="${stateKey}" value="${authorizationState}"/>
+                    <!-- Close sign in table -->
+
+                </td>
             </tr>
         </table>
     </form>
