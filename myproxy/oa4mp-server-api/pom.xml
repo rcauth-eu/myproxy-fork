@@ -79,7 +79,7 @@
         </dependency>
     </dependencies>
 
-    <build>
+    <!--build>
         <plugins>
             <plugin>
                 <groupId>org.dstovall</groupId>
@@ -105,5 +105,5 @@
             <id>onejar-maven-plugin.googlecode.com</id>
             <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
         </pluginRepository>
-    </pluginRepositories>
+    </pluginRepositories-->
 </project>
