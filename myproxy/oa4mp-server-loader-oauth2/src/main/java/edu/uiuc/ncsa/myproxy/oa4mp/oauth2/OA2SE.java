@@ -80,6 +80,12 @@ public class OA2SE extends ServiceEnvironmentImpl {
         OA2Scopes.ScopeUtil.setScopes(scopes); //Probably need a better place to do this at some point. Probably.
 
         this.refreshTokenEnabled = isRefreshTokenEnabled;
+        if(this.refreshTokenEnabled){
+            logger.info("Refresh token support enabled");
+        }else{
+            logger.info("No refresh token support.");
+        }
+
         this.ldapConfiguration = ldapConfiguration;
         this.twoFactorSupportEnabled = twoFactorSupportEnabled;
         this.maxClientRefreshTokenLifetime = maxClientRefreshTokenLifetime;

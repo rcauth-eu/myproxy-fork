@@ -31,7 +31,7 @@ public class OA2ServletInitializer extends OA4MPServletInitializer {
         if(oa2SE.isRefreshTokenEnabled()){
             MyProxyDelegationServlet.transactionCleanup.getRetentionPolicies().clear(); // We need a different set of policies than the original one.
             MyProxyDelegationServlet.transactionCleanup.addRetentionPolicy(new RefreshTokenRetentionPolicy((RefreshTokenStore) oa2SE.getTransactionStore()));
-            oa2SE.getMyLogger().info("Intialized refresh token cleanup thread");
+            oa2SE.getMyLogger().info("Initialized refresh token cleanup thread");
         }
     }
 

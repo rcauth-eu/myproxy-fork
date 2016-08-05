@@ -109,7 +109,7 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         Map<String, String> map = getFirstParameters(request);
 
-        printAllParameters(request);
+        //printAllParameters(request);
         if (map.containsKey(OA2Constants.RESPONSE_TYPE)) {
             // Probably means this is an initial request. Pass it along to the init servlet to
             // unscramble it.
@@ -196,6 +196,11 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     public static class MyMyProxyLogon extends MyProxyLogon{
 
         public String getPassphrase(){return passphrase;}
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "[host=" + getHost() + ", port=" + getPort() + ", for username=" + getUsername() + "]";
+        }
     }
 
     @Override

@@ -23,7 +23,7 @@ source=$1
 target=${2:-$DEFAULT_TARGET}
 
 # copy source to target. Depending on the size, this might take a bit of time.
-java -Done-jar.silent=true -jar $adminJar  -s $source -t $target  -cfg $adminCfg -log $logFile -v
+java  $adminJar  -s $source -t $target  -cfg $adminCfg -log $logFile -v
 if [ $? != 0 ]; then
   exit 1
 fi

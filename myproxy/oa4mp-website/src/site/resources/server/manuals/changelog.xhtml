@@ -18,10 +18,15 @@
     <li>CIL-299: "Max retries exceeded" message from MariaDB connection pool. This was because the
     method in question was only partially synchronized.</li>
     <li>CIL-309: Refresh token fixes and improvements.</li>
+    <li>CIL-317: exception setting transaction state if use waits to finish exchange until after initial grant has expired and
+    garbage collected.</li>
     <li>OAUTH-199: Pass HttpServlet request to custom scope handlers.</li>
     <li>OAUTH-200: Connection pooling does not clean out stale connections.</li>
     <li>OAUTH-206: Refresh token lifetime limited. A logic bug made the lifetime of refresh tokens decrease on refresh,
     eventually yielding invalid refresh tokens. All refresh tokens now are valid for the full requested time.</li>
+    <li>OAUTH-208: Remove dependeny on one-jar plug in for building executable jars, since it is no longer supported.</li>
+    <li>OAUTH-209: Remove dependency on Google Code's maven repository.</li>
+    <li>Added new command line client for testing purposes.</li>
 </ul>
 <h2>3.2.1</h2>
 <ul>

@@ -2,6 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.LDAPConfiguration;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.LDAPConfigurationUtil;
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.LDAPConfigurationUtil.AttributeEntry;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
@@ -16,6 +17,7 @@ import javax.naming.directory.*;
 import javax.naming.ldap.LdapContext;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -24,6 +26,7 @@ import java.util.Hashtable;
 public class LDAPScopeHandler extends BasicScopeHandler {
     /**
      * Returns the name of the user for whom the search is to be run.
+     *
      * @param userInfo
      * @param request
      * @param transaction
@@ -41,13 +44,9 @@ public class LDAPScopeHandler extends BasicScopeHandler {
         try {
             String searchName = getSearchName(userInfo, request, transaction);
             if (searchName != null) {
-                if (getCfg().getSearchAttributes() == null) {
-
-                    userInfo.getMap().putAll(simpleSearch(context, searchName, null));
-                } else {
-                    userInfo.getMap().putAll(simpleSearch(context, searchName, getCfg().getSearchAttributes().toArray(new String[]{})));
-
-                }
+                userInfo.getMap().putAll(simpleSearch(context, searchName, getCfg().getSearchAttributes()));
+            } else {
+                getOa2SE().getMyLogger().warn("Null search name encountered for LDAP query. No search performed.");
             }
             context.close();
         } catch (CommunicationException ce) {
@@ -124,13 +123,14 @@ public class LDAPScopeHandler extends BasicScopeHandler {
 
     protected JSONObject simpleSearch(LdapContext ctx,
                                       String userID,
-                                      String[] attributes) throws NamingException {
+                                      Map<String, AttributeEntry> attributes) throws NamingException {
         SearchControls ctls = new SearchControls();
-        if (attributes == null || attributes.length == 0) {
+        if (attributes == null || attributes.isEmpty()) {
             // return everything if nothing is specified.
             ctls.setReturningAttributes(null);
         } else {
-            ctls.setReturningAttributes(attributes);
+            String[] searchAttributes = attributes.keySet().toArray(new String[]{});
+            ctls.setReturningAttributes(searchAttributes);
         }
         String filter = "(&(uid=" + userID + "))";
         NamingEnumeration e = ctx.search(getCfg().getContextName(), filter, ctls);
@@ -141,33 +141,40 @@ public class LDAPScopeHandler extends BasicScopeHandler {
      * This takes the result of the search as a {@link NamingEnumeration} and set of attributes (from the
      * configuration file) and returns a JSON object. The default is that singletons are returned as simple
      * values while lists are recorded as arrays.
+     *
      * @param attributes
      * @param e
      * @return
      * @throws NamingException
      */
-    protected JSONObject toJSON(String[] attributes, NamingEnumeration e) throws NamingException {
+    protected JSONObject toJSON(Map<String, AttributeEntry> attributes, NamingEnumeration e) throws NamingException {
         JSONObject json = new JSONObject();
 
         while (e.hasMore()) {
             SearchResult entry = (SearchResult) e.next();
             Attributes a = entry.getAttributes();
             System.out.println(entry.getName());
-            for (String attribID : attributes) {
+            for (String attribID : attributes.keySet()) {
                 Attribute attribute = a.get(attribID);
-                if(attribute == null){
+                if (attribute == null) {
                     continue;
                 }
                 if (attribute.size() == 1) {
                     // Single-valued attributes are recorded as simple values
-                    json.put(attribID, attribute.get(0));
+                    if (attributes.get(attribID).isList) {
+                        JSONArray jsonAttribs = new JSONArray();
+                        jsonAttribs.add(attribute.get(0));
+                        json.put(attributes.get(attribID).targetName, jsonAttribs);
+                    } else {
+                        json.put(attributes.get(attribID).targetName, attribute.get(0));
+                    }
                 } else {
                     // Multi-valued attributes are recorded as arrays.
                     JSONArray jsonAttribs = new JSONArray();
                     for (int i = 0; i < attribute.size(); i++) {
                         jsonAttribs.add(attribute.get(i));
                     }
-                    json.put(attribID, jsonAttribs);
+                    json.put(attributes.get(attribID).targetName, jsonAttribs);
                 }
             }
         }

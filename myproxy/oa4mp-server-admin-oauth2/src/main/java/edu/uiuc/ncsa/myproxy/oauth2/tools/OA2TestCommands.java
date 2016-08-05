@@ -243,19 +243,25 @@ public class OA2TestCommands extends TestCommands {
 
     }
 
-    protected void getRTHelp(){
+    protected void getRTHelp() {
         say("getrt: Get a new refresh token. You must have already called getat to have gotten an access token");
         say("       first. This will print out ");
     }
-    protected void printTokens(){
-        say(" access token = " + dummyAsset.getAccessToken().getToken());
-        say("refresh token = " + dummyAsset.getRefreshToken().getToken());
-        say("RT expires in = " + dummyAsset.getRefreshToken().getExpiresIn() + " ms.");
-        Date startDate = DateUtils.getDate(dummyAsset.getRefreshToken().getToken());
-        startDate.setTime(startDate.getTime() + dummyAsset.getRefreshToken().getExpiresIn());
-        say("   expires at " + startDate);
+
+    protected void printTokens() {
+        if (dummyAsset.getAccessToken() != null) {
+            say(" access token = " + dummyAsset.getAccessToken().getToken());
+        }
+        if (dummyAsset.getRefreshToken() != null) {
+            say("refresh token = " + dummyAsset.getRefreshToken().getToken());
+            say("RT expires in = " + dummyAsset.getRefreshToken().getExpiresIn() + " ms.");
+            Date startDate = DateUtils.getDate(dummyAsset.getRefreshToken().getToken());
+            startDate.setTime(startDate.getTime() + dummyAsset.getRefreshToken().getExpiresIn());
+            say("   expires at " + startDate);
+        }
 
     }
+
     public void getrt(InputLine inputLine) throws Exception {
         if (showHelp(inputLine)) {
             getRTHelp();

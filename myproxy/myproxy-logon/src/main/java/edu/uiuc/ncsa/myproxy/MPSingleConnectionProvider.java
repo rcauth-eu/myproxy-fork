@@ -204,4 +204,5 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
         myProxyLogon.setKeyManagerFactory(keyManagerFactory);
         return (T) new MyProxyLogonConnection(myProxyLogon);
     }
+
 }

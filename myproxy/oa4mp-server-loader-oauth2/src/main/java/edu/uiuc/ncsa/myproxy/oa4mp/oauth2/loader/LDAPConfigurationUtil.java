@@ -33,6 +33,21 @@ public class LDAPConfigurationUtil {
     public static final int LDAP_AUTH_SIMPLE_KEY = 10;
     public static final String LDAP_AUTH_STRONG = "strong";
     public static final int LDAP_AUTH_STRONG_KEY = 100;
+    public static final String RETURN_NAME = "returnName"; // attribute for the attribute tag.E.g. <attribute returnName="foo">bar</attributte>
+    public static final String RETURN_AS_LIST = "returnAsList"; // attribute for the attribute tag.E.g. <attribute returnAsList="true">bar</attributte>
+
+    public static class AttributeEntry {
+        public AttributeEntry(String sourceName, String targetName, boolean isList) {
+            this.isList = isList;
+            this.sourceName = sourceName;
+            this.targetName = targetName;
+        }
+
+        public String sourceName;
+        public String targetName;
+        public boolean isList = false;
+
+    }
 
     public static LDAPConfiguration getLdapConfiguration(MyLoggingFacade logger, ConfigurationNode node) {
         LDAPConfiguration ldapConfiguration = new LDAPConfiguration();
@@ -64,7 +79,21 @@ public class LDAPConfigurationUtil {
                 if (LDAP_SEARCH_ATTRIBUTE_TAG.equals(attributeNode.getChild(i).getName())) {
                     Object kid = attributeNode.getChild(i).getValue();
                     if (kid != null) {
-                        ldapConfiguration.getSearchAttributes().add(kid.toString());
+                        String returnName = getFirstAttribute(attributeNode.getChild(i), RETURN_NAME);
+                        if(returnName == null){
+                            returnName = kid.toString(); // name returned is the same as the search attribute
+                        }
+                        x = getFirstAttribute(attributeNode.getChild(i), RETURN_AS_LIST);
+                        boolean returnAsList = false;
+                      if(x!=null) {
+                          try {
+                              returnAsList = Boolean.parseBoolean(x);
+                          } catch (Throwable t) {
+                              // Rock on.
+                          }
+                      }
+                        AttributeEntry attributeEntry = new AttributeEntry(kid.toString(), returnName, returnAsList);
+                        ldapConfiguration.getSearchAttributes().put(attributeEntry.sourceName, attributeEntry);
                     }
                 }
             }

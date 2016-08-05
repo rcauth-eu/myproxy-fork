@@ -34,12 +34,12 @@ public abstract class BaseCommands extends ConfigurableCommandsImpl {
 
 
     protected void start(String[] args) throws Exception {
+        about();
         if (!getOptions(args)) {
             say("Warning: no configuration file specified. type in 'load --help' to see how to load one.");
             return;
         }
         initialize();
-        about();
     }
 
 

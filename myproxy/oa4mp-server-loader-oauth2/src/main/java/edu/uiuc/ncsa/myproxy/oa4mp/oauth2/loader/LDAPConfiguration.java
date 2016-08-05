@@ -1,12 +1,13 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.loader.LDAPConfigurationUtil.AttributeEntry;
 import edu.uiuc.ncsa.security.util.ssl.SSLConfiguration;
 
 import javax.naming.Name;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapContext;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -38,13 +39,18 @@ public class LDAPConfiguration {
 
     String searchBase;
 
-    List<String> searchAttributes = new ArrayList<>();
+    Map<String,AttributeEntry> searchAttributes = new HashMap<>();
 
-    public List<String> getSearchAttributes() {
+    /**
+     * Search attributes are recorded as a map. The key  is the search term in the LDAP query. The value
+     * is the name that should be returned for this attribute in the claim.
+     * @return
+     */
+    public Map<String,AttributeEntry> getSearchAttributes() {
         return searchAttributes;
     }
 
-    public void setSearchAttributes(List<String> searchAttributes) {
+    public void setSearchAttributes(Map<String,AttributeEntry> searchAttributes) {
         this.searchAttributes = searchAttributes;
     }
 

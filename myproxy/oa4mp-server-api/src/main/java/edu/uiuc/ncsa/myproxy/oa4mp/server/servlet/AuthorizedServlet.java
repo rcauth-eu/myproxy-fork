@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
 
-import static edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceConstantKeys.TOKEN_KEY;
 import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
 
 /**
@@ -48,8 +47,9 @@ public abstract class AuthorizedServlet extends CRServlet {
      * @param request
      * @return
      */
-    protected ProtocolParameters parseRequest(HttpServletRequest request) throws ServletException {
-        ProtocolParameters p = new ProtocolParameters();
+abstract    protected ProtocolParameters parseRequest(HttpServletRequest request) throws ServletException;
+    //{
+      /*  ProtocolParameters p = new ProtocolParameters();
         String ag = request.getParameter(CONST(TOKEN_KEY));
         ServiceTransaction trans = null;
         say("starting request for token =" + ag);
@@ -73,8 +73,8 @@ public abstract class AuthorizedServlet extends CRServlet {
             }
         }
 
-        return p;
-    }
+        return p;*/
+    //}
 
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {

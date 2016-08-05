@@ -86,6 +86,9 @@ public class OA2ReadyServlet extends ClientServlet {
         } else {
             asset = (OA2Asset) getCE().getAssetStore().get(identifier);
             if (asset.getState() == null || !asset.getState().equals(state)) {
+                // Just a note: This is most likely to arise when the server's authorize-init.jsp has been
+                // changed or replaced and the hidden field for the state (passed to the form, then passed back
+                // and therefore not stored on the server anyplace) is missing.
                 warn("The expected state from the server was \"" + asset.getState() + "\", but instead \"" + state + "\" was returned. Transaction aborted.");
                 throw new IllegalArgumentException("Error: The state returned by the server is invalid.");
             }

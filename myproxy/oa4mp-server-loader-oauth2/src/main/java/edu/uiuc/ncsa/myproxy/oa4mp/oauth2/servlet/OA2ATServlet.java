@@ -7,6 +7,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractAccessTokenServlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.IssuerTransactionState;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.InvalidTokenException;
+import edu.uiuc.ncsa.security.core.exceptions.InvalidURIException;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
@@ -43,18 +44,21 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         OA2ServiceTransaction st = (OA2ServiceTransaction) state.getTransaction();
         Map<String, String> p = state.getParameters();
         String givenRedirect = p.get(OA2Constants.REDIRECT_URI);
-
+        try {
+            st.setCallback(URI.create(givenRedirect));
+        } catch (Throwable t) {
+            throw new InvalidURIException("Invalid redirect URI \"" + givenRedirect + "\"", t);
+        }
         //Spec says that the redirect must match one of the ones stored and if not, the request is rejected.
         OA2ClientCheck.check(st.getClient(), givenRedirect);
         // Store the callback the user needs to use for this request, since the spec allows for many.
-        st.setCallback(URI.create(p.get(OA2Constants.REDIRECT_URI)));
+
         // If there is a nonce in the initial request, it must be returned as part of the access token
         // response to prevent replay attacks.
         // Here is where we put the information from the session for generating claims in the id_token
         if (st.getNonce() != null && 0 < st.getNonce().length()) {
             p.put(OA2Constants.NONCE, st.getNonce());
         }
-
 
         p.put(OA2Constants.CLIENT_ID, st.getClient().getIdentifierString());
         if (getServiceEnvironment().getServiceAddress() != null) {
@@ -123,18 +127,26 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
             ATIResponse2 atResponse = (ATIResponse2) state.getIssuerResponse();
 
             OA2ServiceTransaction st2 = (OA2ServiceTransaction) state.getTransaction();
+            if(!client.isRTLifetimeEnabled() && ((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()){
+                // Since this bit of information could be extremely useful if a service decides
+                // eto start issuing refresh tokens after
+                // clients have been registered, it should be logged.
+                info("Refresh tokens are disabled for client " + client.getIdentifierString() + ", but enabled on the server. No refresh token will be madeg.");
+            }
             if (client.isRTLifetimeEnabled() && ((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) {
+
                 RefreshToken rt = atResponse.getRefreshToken();
                 st2.setRefreshToken(rt);
                 // First pass through the system should have the system default as the refresh token lifetime.
-                st2.setRefreshTokenLifetime(((OA2SE)getServiceEnvironment()).getRefreshTokenLifetime());
+                st2.setRefreshTokenLifetime(((OA2SE) getServiceEnvironment()).getRefreshTokenLifetime());
                 rt.setExpiresIn(computeRefreshLifetime(st2));
-                System.out.println(getClass().getSimpleName() + ".doit: expires in=" + rt.getExpiresIn());
                 st2.setRefreshTokenValid(true);
-            }else{
+            } else {
                 // Do not return a refresh token.
-                 atResponse.setRefreshToken(null);
+                atResponse.setRefreshToken(null);
             }
+            System.err.println(getClass().getSimpleName() + ".doit: saving transaction " + st2);
+
             getTransactionStore().save(st2);
             atResponse.write(response);
             return;
@@ -159,6 +171,9 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
     protected TransactionState doRefresh(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         RefreshToken oldRT = getTF2().getRefreshToken(request.getParameter(OA2Constants.REFRESH_TOKEN));
         OA2Client c = (OA2Client) getClient(request);
+        if(c == null){
+            throw new InvalidTokenException("Could not find the client associated with geturirefresh token \"" + oldRT + "\"");
+        }
         checkClient(c);
 
         OA2ServiceTransaction t = getByRT(oldRT);
@@ -167,7 +182,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         }
 
         if (t == null || !t.isRefreshTokenValid()) {
-            throw new InvalidTokenException("Error: The refresh token is no longer valid." );
+            throw new InvalidTokenException("Error: The refresh token is no longer valid.");
         }
         t.setRefreshTokenValid(false); // this way if it fails at some point we know it is invalid.
         AccessToken at = t.getAccessToken();

@@ -165,23 +165,25 @@ public class OA2CertServlet extends ACS2 {
 */
         OA2ServiceTransaction st = (OA2ServiceTransaction) trans;
         OA2SE oa2SE = (OA2SE) getServiceEnvironment();
-        System.err.println(getClass().getSimpleName() + ".doRealCR: two factor support on? " + oa2SE.isTwoFactorSupportEnabled());
         if (!oa2SE.isTwoFactorSupportEnabled()) {
             checkMPConnection(st);
         } else {
             // The assumption at this point is that the connection information has been stashed, but has not been
             // used since the password is valid exactly once. Here is where we set up the connection once
             // and for all.
-            System.err.println(getClass().getSimpleName() + ".doRealCR: trans = " + st);
             if (!getMyproxyConnectionCache().containsKey(st.getIdentifier())) {
                 throw new GeneralException("No cached my proxy object with identifier " + st.getIdentifierString());
             }
             MPSingleConnectionProvider.MyProxyLogonConnection mpc = (MPSingleConnectionProvider.MyProxyLogonConnection) getMyproxyConnectionCache().get(st.getIdentifier()).getValue();
-            System.err.println(getClass().getSimpleName() + ".doRealCR: mpc = " + mpc);
-            MyMyProxyLogon myProxyLogon = (MyMyProxyLogon) mpc.getMyProxyLogon();
-            System.err.println(getClass().getSimpleName() + ".doRealCR: mymyproxy = " + myProxyLogon);
-            getMyproxyConnectionCache().remove(mpc.getIdentifier());
-            createMPConnection(trans.getIdentifier(), myProxyLogon.getUsername(), myProxyLogon.getPassphrase(), trans.getLifetime());
+            // First pass will be a MyMyProxyLogon object that allows completing the logon.
+            // After that it will be a regular MyProxyLogon object. Since the password is valid for
+            // a very short period (typically only up to a minute or two), the logon can fail if
+            // not done promptly by the user.
+            if(mpc.getMyProxyLogon() instanceof MyMyProxyLogon) {
+                MyMyProxyLogon myProxyLogon = (MyMyProxyLogon) mpc.getMyProxyLogon();
+                getMyproxyConnectionCache().remove(mpc.getIdentifier());
+                createMPConnection(trans.getIdentifier(), myProxyLogon.getUsername(), myProxyLogon.getPassphrase(), trans.getLifetime());
+            }
         }
         doCertRequest(st, statusString);
     }

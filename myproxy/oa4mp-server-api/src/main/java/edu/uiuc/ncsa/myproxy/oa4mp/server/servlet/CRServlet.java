@@ -1,11 +1,13 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.servlet;
 
 import edu.uiuc.ncsa.myproxy.MPConnectionProvider;
+import edu.uiuc.ncsa.myproxy.MPSingleConnectionProvider;
 import edu.uiuc.ncsa.myproxy.MyProxyConnectable;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.JGlobusUtil;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.delegation.token.MyX509Certificates;
@@ -164,6 +166,7 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
                                                     String loa) throws GeneralSecurityException {
         MPConnectionProvider facades = new MPConnectionProvider(getMyLogger(), MyProxyDelegationServlet.getServiceEnvironment().getMyProxyServices());
         MyProxyConnectable mpc = facades.findConnection(identifier, userName, password, loa, lifetime);
+        DebugUtil.dbg(this,((MPSingleConnectionProvider.MyProxyLogonConnection)mpc).getMyProxyLogon().toString());
         getMyproxyConnectionCache().add( mpc);
         return mpc;
     }

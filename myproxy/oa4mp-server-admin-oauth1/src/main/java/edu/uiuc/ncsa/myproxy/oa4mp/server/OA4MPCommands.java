@@ -49,7 +49,6 @@ public class OA4MPCommands extends BaseCommands {
 
     public static void main(String[] args) {
         try {
-            System.setProperty("one-jar.silent", "true");
             OA4MPCommands OA4MPCommands = new OA4MPCommands(null);
             OA4MPCommands.start(args);
             if (OA4MPCommands.executeComponent()) {

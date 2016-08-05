@@ -425,6 +425,7 @@ public class MyProxyLogon {
             if (0 < getSocketTimeout()) {
                 // NOTE that this is an integer that is used for milliseconds.
                 socket.setSoTimeout((int) getSocketTimeout());
+                socket.setKeepAlive(true);
             }
             this.socket.startHandshake();
             this.socketIn = new BufferedInputStream(this.socket.getInputStream());
@@ -957,4 +958,10 @@ public class MyProxyLogon {
     public boolean isDone(){
         return this.state == State.DONE;
     }
+    @Override
+
+    public String toString() {
+        return getClass().getSimpleName() + "[host=" + getHost() + ", port=" + getPort() + ", for username=" + getUsername() + "]";
+    }
+
 }

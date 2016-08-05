@@ -77,44 +77,45 @@
         </td>
     </tr>
     <tr>
-           <td style="vertical-align: top;">maxClientRefreshTokenLifetime</td>
-           <td style="vertical-align: top;">N</td>
-           <td style="vertical-align: top;">33696000</td>
-           <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
-               specific. This will set a global maximum on the server, in seconds, for refresh tokens a client
-               may request at registration. The default is 13 months.
-           </td>
-       </tr>
+        <td style="vertical-align: top;">maxClientRefreshTokenLifetime</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">33696000</td>
+        <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
+            specific. This will set a global maximum on the server, in seconds, for refresh tokens a client
+            may request at registration. The default is 13 months.
+        </td>
+    </tr>
     <tr>
-         <td style="vertical-align: top;">refreshTokenEnabled</td>
-         <td style="vertical-align: top;">N</td>
-         <td style="vertical-align: top;">false</td>
-         <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
-             specific. This tells the server to issue refresh tokens. Setting this false means the server will
-             not issue them, nor will clients be allowed to specify them at registration. Setting the
-             value for the refreshTokenLifetime in the configuration will be ignored if the server
-             does not issue refresh tokens.
-         </td>
-     </tr>
+        <td style="vertical-align: top;">refreshTokenEnabled</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">false</td>
+        <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
+            specific. This tells the server to issue refresh tokens. Setting this false means the server will
+            not issue them, nor will clients be allowed to specify them at registration. Setting the
+            value for the refreshTokenLifetime in the configuration will be ignored if the server
+            does not issue refresh tokens.
+        </td>
+    </tr>
 
     <tr>
-          <td style="vertical-align: top;">clientSecretLength</td>
-          <td style="vertical-align: top;">N</td>
-          <td style="vertical-align: top;">258</td>
-          <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
-              specific. The server generates client secrets of this length in bytes, then displays them
-              to the client in Base64 encoding, which should be returned verbatim to the server. We suggest
-              at least 128 bytes in length and since Base64 encoding will always pad if the byte count is not
-              divisible by three, making it so is good practice.
-          </td>
-      </tr>
+        <td style="vertical-align: top;">clientSecretLength</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">258</td>
+        <td style="vertical-align: top;">"<span style="background-color: #ff6600;">OAuth 2</span>
+            specific. The server generates client secrets of this length in bytes, then displays them
+            to the client in Base64 encoding, which should be returned verbatim to the server. We suggest
+            at least 128 bytes in length and since Base64 encoding will always pad if the byte count is not
+            divisible by three, making it so is good practice.
+        </td>
+    </tr>
     <tr>
-           <td style="vertical-align: top;">serverDN</td>
-           <td style="vertical-align: top;">N</td>
-           <td style="vertical-align: top;">(none)</td>
-           <td style="vertical-align: top;">A server DN applied to all MyProxy servers. This may also be applied
-           individually in the MyProxy element.</td>
-       </tr>
+        <td style="vertical-align: top;">serverDN</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">(none)</td>
+        <td style="vertical-align: top;">A server DN applied to all MyProxy servers. This may also be applied
+            individually in the MyProxy element.
+        </td>
+    </tr>
     <tr>
         <td style="vertical-align: top;">disableDefaultStores</td>
         <td style="vertical-align: top;">N</td>
@@ -126,18 +127,39 @@
         </td>
     </tr>
     <tr>
-         <td style="vertical-align: top;">pingable</td>
-         <td style="vertical-align: top;">N</td>
-         <td style="vertical-align: top;">true</td>
-         <td style="vertical-align: top;">Boolean value. If true, then contacting a server endpoint (HTTP GET) with an argument of "ping"
-             will result in a response with HTTP return code of 204. If false, then an 500 exception will be thrown on the server.
-         </td>
-     </tr>
+        <td style="vertical-align: top;">pingable</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">true</td>
+        <td style="vertical-align: top;">Boolean value. If true, then contacting a server endpoint (HTTP GET) with an
+            argument of "ping"
+            will result in a response with HTTP return code of 204. If false, then an 500 exception will be thrown on
+            the server.
+        </td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;">enableTwoFactorSupport</td>
+        <td style="vertical-align: top;">N</td>
+        <td style="vertical-align: top;">false</td>
+        <td style="vertical-align: top;">Boolean value. If true, the support for two factor authentication is enabled.
+        </td>
+    </tr>
+
     </tbody>
 </table>
 <p>The <span style="font-weight: bold;">name</span> can be anything. The name of the configuration to use may be
     specified in the deployment descriptor (web.xml) file. If there is a single configuration in the file, that will be
     used. If there are multiple configurations and no name is specified, an exception is raised.</p>
+
+<h3>A Note on using Two Factor Authentication</h3>
+
+<p>Due to the way Two Factor works, this effectively allows you to get only a single certificate once.
+    Because Two Factor generates a one time password that is very short lived (typically only a minute or perhaps 2
+    at the most), it is possible to wait too long before logging in (done when getting the cert) and have this fail.
+    Also, as stated elsewhere and worth repeating that ever so often, Two Factor offers a challenge that requires you to
+    log on to the RSA self-service console (For the NCSA, this is located at <a href="https://otp.ncsa.illinois.edu/">otp</a>)
+    and then exchange the next token. This is impossible to do within the delegation service, so if
+    Two Factor requires this, get certs will fail with an "invalid password" message until further notice.
+</p>
 
 <h3>Example 1.</h3>
 <pre>

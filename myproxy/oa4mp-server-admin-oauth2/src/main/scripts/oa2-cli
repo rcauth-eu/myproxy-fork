@@ -25,10 +25,7 @@ fi
 target=${1:-$DEFAULT_TARGET}
 adminCfg=${2:-$DEFAULT_CONFIG}
 
-# Note the flag for one-jar: If this is not set then there will be a ton of random startup
-# messages, all of which are benign. One of the included dependencies has an embedded log4j
-# file that causes this, so we just have to override it.
-java -Done-jar.silent=true -jar $cliJar   -cfg $adminCfg -name $target -log $logFile -v
+java -jar $cliJar   -cfg $adminCfg -name $target -log $logFile -v
 
 if [ $? != 0 ]; then
   exit 1
