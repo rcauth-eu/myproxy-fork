@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>The Command Line test Client</title>
+    <!--#include virtual="../../head.html" -->
+</head>
+
+<body class="composite">
+<!--#include virtual="../../header.html" -->
+<h2>The Command Line Test Client</h2>
+<p>New to version 3.3 of OA4MP for OIDC is a command line client. This allows you to register a client with a server
+    and issue commands to the server to get access tokens, refresh tokens, user information and certs (assuming the server
+    supports these). The only caveats are
+        </p>
+<ul>
+    <li>You must register a client with the server. This must not have a functional callback. </li>
+    <li>You must manually cut and paste after authentication. This cannot be altered without changing the
+    security model for OA4MP.</li>
+</ul>
+<h2>What it is</h2>
+<p>This command line utility allows you to issue commands against the server and view responses.
+    Talking to a server requires some complex state generation and management. The client
+    does all of this for you. The supported commands are
+
+        </p>
+<ul>
+    <li><b>clear</b> -- clear the current state and start over</li>
+    <li><b>exit</b> -- end the session and shut down the client.</li>
+    <li><b>geturi</b> -- this creates the URI (not trivial as it requires a lot of parameters) that you copy and paste in to your browser.</li>
+    <li><b>setgrant</b>-- This is invoked on the callback uri from the server. It will grab the state information and manage it.</li>
+    <li><b>getat</b> -- Get an access token. You may also get a refresh token at this time if the server supports this.</li>
+    <li><b>getuserinfo</b> -- use the current access token to get the user's information</li>
+    <li><b>getcert</b> -- get a certificate</li>
+    <li><b>getrt</b> -- get the next refresh token</li>
+</ul>
+<h3>Setup</h3>
+<p>You must register the a client with the server as per <a href="http://grid.ncsa.illinois.edu/myproxy/oauth/client/manuals/registering-with-an-oauth2-server.xhtml">this</a>.
+The trick that makes this work, however, is that the callback URL you supply must be invalid, i.e., the callback from the server
+must fail. This will allow you to get the OAuth transaction state.</p>
+<!--#include virtual="../../footer.html" -->
+<h3>Invocation</h3>
+<p>
+    The client is called either directly or through the oa2-client script. You need to specify the configuration file name
+    and the name of the configuration.
+
+</p>
+<pre>
+    java -jar /opt/oa2/oa2-client.jar -cfg ~/config/clients.xml -name oa4mp2
+    OA4MP Client OAuth 2 configuration loader, version 3.3 startup on Thu Aug 11 13:46:26 CDT 2016
+    test2>
+</pre>
+<p>The last line is the prompt. The startup message tell you that the loader found everything and there
+were no issues. You are now ready to start talking to an OA4MP OAuth 2 server.</p>
+</body>
+</html>

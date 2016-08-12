@@ -124,6 +124,9 @@ public class LDAPScopeHandler extends BasicScopeHandler {
     protected JSONObject simpleSearch(LdapContext ctx,
                                       String userID,
                                       Map<String, AttributeEntry> attributes) throws NamingException {
+        if(ctx == null){
+            throw new IllegalStateException("Error: No LDAP context");
+        }
         SearchControls ctls = new SearchControls();
         if (attributes == null || attributes.isEmpty()) {
             // return everything if nothing is specified.
