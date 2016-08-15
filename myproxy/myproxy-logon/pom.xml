@@ -13,26 +13,36 @@
     <version>3.4-SNAPSHOT</version>
     <name>MyProxy Logon</name>
     <packaging>jar</packaging>
-    <!--build>
+    <build>
         <plugins>
             <plugin>
-                <groupId>org.dstovall</groupId>
-                <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.5</version>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>edu.uiuc.ncsa.myproxy.MyProxyLogonGUI</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>MyProxyLogon</finalName>
+                </configuration>
                 <executions>
                     <execution>
-                        <configuration>
-                            <mainClass>edu.uiuc.ncsa.myproxy.MyProxyLogonGUI</mainClass>
-                            <filename>MyProxyLogon.jar</filename>
-                        </configuration>
+                        <id>make-my-jar-with-dependencies</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>one-jar</goal>
+                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+
+
         </plugins>
-    </build-->
+    </build>
     <dependencies>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -46,11 +56,5 @@
         </dependency>
 
     </dependencies>
-    <!--pluginRepositories>
-        <pluginRepository>
-            <id>onejar-maven-plugin.googlecode.com</id>
-            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
-        </pluginRepository>
-    </pluginRepositories-->
 
 </project>
