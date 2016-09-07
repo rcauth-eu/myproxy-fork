@@ -5,7 +5,7 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
-<head><title>XSEDE MyProxy Delegation Service Registration Error Page</title></head>
+<head><title>XSEDE OIDC Client Registration Error</title></head>
 <link rel="stylesheet" type="text/css" media="all" href="xup.css"/>
 <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
 <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon"/>
