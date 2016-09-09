@@ -145,7 +145,6 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
                 // Do not return a refresh token.
                 atResponse.setRefreshToken(null);
             }
-            System.err.println(getClass().getSimpleName() + ".doit: saving transaction " + st2);
 
             getTransactionStore().save(st2);
             atResponse.write(response);

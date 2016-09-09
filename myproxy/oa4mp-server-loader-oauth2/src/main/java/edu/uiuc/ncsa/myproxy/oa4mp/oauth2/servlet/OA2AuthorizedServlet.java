@@ -132,6 +132,9 @@ public class OA2AuthorizedServlet extends AbstractInitServlet {
         String rawSecret = params.get(CLIENT_SECRET);
         if (rawSecret != null) {
             info("Client is sending secret in initial request. Though not forbidden by the protocol this is discouraged.");
+            if(!agResponse.getClient().getSecret().equals(rawSecret)){
+                info("And for what it is worth, the client sent along an incorrect secret too...");
+            }
         }
         String nonce = params.get(NONCE);
         // FIX for OAUTH-180. Server must support clients that do not use a nonce. Just log it and rock on.

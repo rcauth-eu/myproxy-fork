@@ -8,7 +8,6 @@ package edu.uiuc.ncsa.oauth2.test;
 import edu.uiuc.ncsa.myproxy.oa4mp.ServiceConfigTest;
 import edu.uiuc.ncsa.myproxy.oa4mp.TestStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.TestUtils;
-import edu.uiuc.ncsa.myproxy.oa4mp.TokenTest;
 import edu.uiuc.ncsa.myproxy.oa4mp.aggregate.AGCAStoreTest;
 import edu.uiuc.ncsa.myproxy.oa4mp.aggregate.AGClientTest;
 import edu.uiuc.ncsa.myproxy.oa4mp.file.FSCAStoreTest;
@@ -46,10 +45,7 @@ import static edu.uiuc.ncsa.myproxy.oa4mp.TestUtils.findConfigNode;
  * on Nov 27, 2010 at  1:28:14 PM
  */
 @RunWith(Suite.class)
-/*
-NOTE: the tests below are commented out so this runs from the command line with the full build,
-which includes CILogon.
- */
+
 @Suite.SuiteClasses({
         TokenTest2.class,
         AGClientTest.class,

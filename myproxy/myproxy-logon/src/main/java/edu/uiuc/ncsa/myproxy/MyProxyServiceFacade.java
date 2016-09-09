@@ -30,11 +30,11 @@ import java.util.Collection;
 public class MyProxyServiceFacade {
     protected int getLOAPort(String id) {
         if (id == null || id.length() == 0 || facadeConfiguration.loas == null || facadeConfiguration.loas.isEmpty()) {
-            return facadeConfiguration.getPort();
+            return facadeConfiguration.getPort(); // This is the port for the basic MyProxy server
         }
         Integer x = facadeConfiguration.loas.get(id);
         if (x == null) {
-            return facadeConfiguration.getPort();
+            return facadeConfiguration.getPort();  // If there is no specific port, then default to basic.
         }
         return x;
     }
