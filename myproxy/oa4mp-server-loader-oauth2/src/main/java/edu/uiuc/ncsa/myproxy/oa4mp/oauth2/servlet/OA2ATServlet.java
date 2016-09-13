@@ -19,6 +19,7 @@ import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.HttpStatus;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -110,11 +111,12 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         checkClient(client);
 
         String rawSecret = getFirstParameterValue(request, CLIENT_SECRET);
+        // Fix for CIL-332
         if (rawSecret == null) {
-            throw new GeneralException("Error: No secret. request refused.");
+            throw new OA2GeneralError(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret", HttpStatus.SC_BAD_REQUEST);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            throw new GeneralException("Error: Secret is incorrect. request refused.");
+            throw new OA2GeneralError(OA2Errors.UNAUTHORIZED_CLIENT, "Secret incorrect", HttpStatus.SC_BAD_REQUEST);
         }
 
 
