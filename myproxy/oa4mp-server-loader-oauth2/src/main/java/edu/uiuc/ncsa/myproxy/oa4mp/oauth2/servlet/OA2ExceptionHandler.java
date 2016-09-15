@@ -5,11 +5,9 @@ import edu.uiuc.ncsa.security.core.exceptions.UnknownClientException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.ExceptionWrapper;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2RedirectableError;
+import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.servlet.ExceptionHandler;
+import net.sf.json.JSONObject;
 import org.apache.http.HttpStatus;
 
 import javax.servlet.ServletException;
@@ -61,6 +59,10 @@ public class OA2ExceptionHandler implements ExceptionHandler {
             return;
         }
 
+        if(t instanceof OA2ATException){
+            handleOA2Error((OA2ATException)t, response);
+            return;
+        }
         if (t instanceof OA2RedirectableError) {
             handleOA2Error((OA2RedirectableError) t, response);
             return;
@@ -89,6 +91,20 @@ public class OA2ExceptionHandler implements ExceptionHandler {
         response.setStatus(oa2GeneralError.getHttpStatus());
         writer.println(OA2Constants.ERROR + "=\"" + encode(oa2GeneralError.getError()) + "\"");
         writer.println(OA2Constants.ERROR_DESCRIPTION + "=\"" + encode(oa2GeneralError.getDescription()) + "\"");
+        writer.flush();
+        writer.close();
+    }
+
+    // Fix for CIL-332: This should now send JSON with the correct http status.
+    protected void handleOA2Error(OA2ATException oa2ATException, HttpServletResponse response) throws IOException {
+        response.setStatus(oa2ATException.getStatusCode());
+        response.setHeader("Content-Type", "application/json;charset=UTF-8");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(OA2Constants.ERROR, oa2ATException.getError());
+        jsonObject.put(OA2Constants.ERROR_DESCRIPTION, oa2ATException.getDescription());
+        PrintWriter writer = response.getWriter();
+
+        writer.write(jsonObject.toString());
         writer.flush();
         writer.close();
     }

@@ -10,6 +10,7 @@ import edu.uiuc.ncsa.security.core.exceptions.InvalidTokenException;
 import edu.uiuc.ncsa.security.core.exceptions.InvalidURIException;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
+import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
 import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
@@ -19,7 +20,6 @@ import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.*;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.http.HttpStatus;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -113,10 +113,12 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String rawSecret = getFirstParameterValue(request, CLIENT_SECRET);
         // Fix for CIL-332
         if (rawSecret == null) {
-            throw new OA2GeneralError(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret", HttpStatus.SC_BAD_REQUEST);
+            DebugUtil.dbg(this, "doIt: no secret, throwing exception.");
+            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret");
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            throw new OA2GeneralError(OA2Errors.UNAUTHORIZED_CLIENT, "Secret incorrect", HttpStatus.SC_BAD_REQUEST);
+            DebugUtil.dbg(this, "doIt: bad secret, throwing exception.");
+            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Incorrect secret");
         }
 
 
@@ -129,7 +131,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
             ATIResponse2 atResponse = (ATIResponse2) state.getIssuerResponse();
 
             OA2ServiceTransaction st2 = (OA2ServiceTransaction) state.getTransaction();
-            if(!client.isRTLifetimeEnabled() && ((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()){
+            if (!client.isRTLifetimeEnabled() && ((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) {
                 // Since this bit of information could be extremely useful if a service decides
                 // eto start issuing refresh tokens after
                 // clients have been registered, it should be logged.
@@ -172,18 +174,18 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
     protected TransactionState doRefresh(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         RefreshToken oldRT = getTF2().getRefreshToken(request.getParameter(OA2Constants.REFRESH_TOKEN));
         OA2Client c = (OA2Client) getClient(request);
-        if(c == null){
+        if (c == null) {
             throw new InvalidTokenException("Could not find the client associated with geturirefresh token \"" + oldRT + "\"");
         }
         checkClient(c);
 
         OA2ServiceTransaction t = getByRT(oldRT);
         if ((!((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) || (!c.isRTLifetimeEnabled())) {
-            throw new OA2RedirectableError(OA2Errors.REQUEST_NOT_SUPPORTED, "Refresh tokens are not supported on this server", request.getParameter(OA2Constants.STATE), t.getCallback());
+            throw new OA2ATException(OA2Errors.REQUEST_NOT_SUPPORTED, "Refresh tokens are not supported on this server");
         }
 
         if (t == null || !t.isRefreshTokenValid()) {
-            throw new InvalidTokenException("Error: The refresh token is no longer valid.");
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,"Error: The refresh token is no longer valid.");
         }
         t.setRefreshTokenValid(false); // this way if it fails at some point we know it is invalid.
         AccessToken at = t.getAccessToken();
@@ -218,10 +220,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         OA2ServiceTransaction transaction = (OA2ServiceTransaction) transactionStore.get(basicIdentifier);
         if (transaction == null) {
             // Then this request does not correspond to an previous one and must be rejected asap.
-            throw new OA2RedirectableError(OA2Errors.ACCESS_DENIED,
-                    "No pending transaction found",
-                    atResponse.getParameters().get(OA2Constants.STATE),
-                    atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "No pending transaction found");
         }
         if (!transaction.isAuthGrantValid()) {
             String msg = "Error: Attempt to use invalid authorization code.  Request rejected.";
@@ -231,9 +230,9 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
         URI uri = URI.create(atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
         if (!transaction.getCallback().equals(uri)) {
-            String msg = "Error: Attempt to use alternate redirect uri rejected.";
+            String msg = "Attempt to use alternate redirect uri rejected.";
             warn(msg);
-            throw new GeneralException(msg);
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
 
         }
         /* Now we have to determine which scopes to return

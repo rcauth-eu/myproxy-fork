@@ -26,7 +26,7 @@ public abstract class TestCommands extends CommonCommands {
 
     @Override
     public String getPrompt() {
-        return "test2>";
+        return "client>";
     }
 
 }

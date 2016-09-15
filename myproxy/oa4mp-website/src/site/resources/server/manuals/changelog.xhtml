@@ -18,10 +18,24 @@
     <li>CIL-299: "Max retries exceeded" message from MariaDB connection pool. This was because the
     method in question was only partially synchronized.</li>
     <li>CIL-309: Refresh token fixes and improvements.</li>
+    <li>CIL-312: Null pointer exception when parsing URIs. The built-in parser for URIs is rather stupid in certain cases
+    and would throw an NPE when parsing. This is not being handled better to prevent this.</li>
     <li>CIL-317: exception setting transaction state if use waits to finish exchange until after initial grant has expired and
     garbage collected.</li>
+    <li>CIL-319: Indicate in DN if the user is from and InCommon or eduGain IDP.</li>
+    <li>CIL-320: DB Service fix to get information to resolve CIL-319.</li>
+    <li>CIL-324: Attempting to send many email notifications at once causes failures.</li>
+    <li>OAUTH-189: Invalid nonce causes reloadof authorization page to fail.</li>
+    <li>OAUTH-191: Defer connecting to MyProxy until the getCert call, if possible.</li>
+    <li>OAUTH-194: OIDC token endpoint should return error with status of 400.</li>
+    <li>OAUTH-196: Documentation needs updating after file name change internally.</li>
+    <li>OAUTH-197: Testing from the command line documentation shows sending the secret to the authorization endpoint, which
+    is not in the specification.</li>
+    <li>OAUTH-198: Pass teh HTTPServletRequest to the basic scope handler. This allows implementors more flexibility.</li>
     <li>OAUTH-199: Pass HttpServlet request to custom scope handlers.</li>
     <li>OAUTH-200: Connection pooling does not clean out stale connections.</li>
+    <li>OAUTH-201: Username incorrectly flagged as the primary key for the asset table, causing and error on updates.</li>
+    <li>OAUTH-202: Tomcat 6 is not supported for this release of OA4MP. You must have at least version 7 or higher.</li>
     <li>OAUTH-206: Refresh token lifetime limited. A logic bug made the lifetime of refresh tokens decrease on refresh,
     eventually yielding invalid refresh tokens. All refresh tokens now are valid for the full requested time.</li>
     <li>OAUTH-208: Remove dependeny on one-jar plug in for building executable jars, since it is no longer supported.</li>

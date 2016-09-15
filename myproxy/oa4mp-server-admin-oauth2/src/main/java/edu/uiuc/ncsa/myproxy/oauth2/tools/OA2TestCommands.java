@@ -17,7 +17,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.client.ATResponse2;
 import edu.uiuc.ncsa.security.util.cli.InputLine;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -55,7 +55,8 @@ public class OA2TestCommands extends TestCommands {
         say("       You must then authenticate. After you authenticate, the");
         say("       service will attempt a call back to a client endpoint which will");
         say("       fail (this is the hook that lets us do this manually).");
-        say("       Nest Step: You should invoke getAuthGrant using this to get an authorization grant.");
+        say("       Next Step: You should invoke setgrant with the callback uri from the server.");
+
     }
 
     SecureRandom secureRandom = new SecureRandom();
@@ -76,26 +77,6 @@ public class OA2TestCommands extends TestCommands {
             getURIHelp();
             return;
         }
-        /*
-        https://test.cilogon.org/authorize?
-        state=qqqqq&response_type=code&
-        redirect_uri=https%3A%2F%2Fashigaru.ncsa.uiuc.edu%3A9443%2Fclient2%2Fready&
-        scope=openid%20edu.uiuc.ncsa.myproxy.getcert&
-        nonce=n-0S6_WzA2Mj&
-        client_id=myproxy:oa4mp,2012:/client_id/35679e1eb48281eb8cd98cfa6a57fa16&
-        client_secret=KcG54c03XnhIw3FU9qjYzAnvUdYdqWxLouKW-euqpNHwQZAKk5wNOuFVxWJrngnHV-WnsbMuSlvc9CnUiX9rSZB7oFB7rcb_zT2GxlBZ7NlJSOsttcfm-AaN0wWGXYXrR1pJ7yVocHPTw0rX0sre_CySQnh98Kfz8Ngsg0kGlkMocnks785fg3sXtYVFVNMKqM8Cj6qZQI3Ja5q0QNm6XUJw4mmrRIonkMmyqBMq60F5gu9e4x0laDTc0-exLKxRVQmBBovsyffiAwxwTR7salNB3VK5g8ZeMWbHmrSN5swzc_YbTn8RskvFHDcy6jSl92aUoD_9yMxvsrkhUhO9wc_c
-         */
- /*       String callback = getCe().getCallback().toString();
-        HashMap<String, String> args = new HashMap<>();
-        args.put(OA2Constants.STATE, getRandomString());
-        args.put(OA2Constants.NONCE, getRandomString());
-        args.put(OA2Constants.RESPONSE_TYPE, "code");
-        args.put(OA2Constants.REDIRECT_URI, callback);
-        args.put(OA2Constants.SCOPE, getOA2S().getRequestedScopes());
-        args.put(OA2Constants.CLIENT_ID, getCe().getClientId());
-        args.put(OA2Constants.PROMPT, "login");
-        say(createURI(getCe().getAuthorizationUri().toString(), args));
- */
         Identifier id = AssetStoreUtil.createID();
         OA4MPResponse resp = getService().requestCert(id);
         dummyAsset = (OA2Asset) getCe().getAssetStore().get(id.toString());
@@ -129,14 +110,8 @@ public class OA2TestCommands extends TestCommands {
     AuthorizationGrant grant;
 
     public void setgrant(InputLine inputLine) throws Exception {
-/*
-        if(!canGetGrant){
-            say("Sorry, but you have not generated a uri and possibly authenticated. Please do that first.");
-            return;
-        }
-*/
         if (inputLine.size() != 2 || showHelp(inputLine)) {
-            getGrantHelp();
+            setGrantHelp();
             return;
         }
         String x = inputLine.getArg(1); // zero-th element is the name of this function. 1st is the actual argument.
@@ -167,6 +142,7 @@ public class OA2TestCommands extends TestCommands {
             return;
         }
         dummyAsset = null;
+        assetResponse = null;
         currentATResponse = null;
         grant = null;
 
@@ -182,11 +158,46 @@ public class OA2TestCommands extends TestCommands {
     boolean canGetRT = false;
 
     protected void getClearHelp() {
-        say("clear: reset all internal state and restart. You should do this rather than just restarting the process");
+        say("clear: reset all internal state and restart. You should do this rather than just starting over");
         say("       as you may run into old state.");
     }
 
     OA2Asset dummyAsset;
+
+    protected void saveCertHelp(){
+        say("savecert filename");
+        say("This will save the cert (be sure to do a getcert call first so you have one) to the");
+        say("fully qualified filename");
+        say("If there is no cert available, no file will be written, but a message will be printed.");
+    }
+    /**
+     * If the state supports this, it will save the current cert to a file. The complete filename must be supplied,
+     * including any path.
+     * @param inputLine
+     * @throws Exception
+     */
+    public void savecert(InputLine inputLine) throws Exception{
+    if(showHelp(inputLine)){
+        saveCertHelp();
+        return;
+    }
+        if(assetResponse == null){
+            say("Sorry, but there is no cert to save. Please do a successful getcert call first.");
+            return;
+        }
+        String cert = CertUtil.toPEM(assetResponse.getX509Certificates());
+        if(!inputLine.hasArgs()){
+            say("Sorry. You did not specify a file so the cert cannot be saved.");
+            return;
+        }
+        String fileName = inputLine.getArg(1);
+            FileWriter fileWriter = new FileWriter(fileName);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(cert + "\n");
+            bufferedWriter.flush();
+            bufferedWriter.close();
+        say("File \"" + fileName + "\" saved successfully.");
+    }
 
     public void getat(InputLine inputLine) throws Exception {
        /* if(!canGetAT){
@@ -199,11 +210,6 @@ public class OA2TestCommands extends TestCommands {
 
         currentATResponse = getOA2S().getAccessToken(getDummyAsset(), grant);
         printTokens();
-/*
-        say(" access token = " + currentATResponse.getAccessToken().getToken());
-        say("refresh token = " + currentATResponse.getRefreshToken().getToken());
-        say("   expires in = " + currentATResponse.getRefreshToken().getExpiresIn() + "ms.");
-*/
     }
 
     ATResponse2 currentATResponse;
@@ -215,6 +221,7 @@ public class OA2TestCommands extends TestCommands {
     protected void getUIHelp() {
         say("getuserinfo: This will get the user info from the server. You must have already authenticated");
         say("             *and* gotten a valid access token by this point. Just a list of these it printed.");
+        say("             What is returned is dependant upon what the server supports.");
     }
 
     public void getuserinfo(InputLine inputLine) throws Exception {
@@ -231,13 +238,14 @@ public class OA2TestCommands extends TestCommands {
 
     }
 
+    AssetResponse assetResponse = null;
     public void getcert(InputLine inputLine) throws Exception {
         if (showHelp(inputLine)) {
             getCertHelp();
             return;
         }
-        AssetResponse assetResponse = getOA2S().getCert(dummyAsset, currentATResponse);
-        say("returned username=" + assetResponse.getUsername());
+        assetResponse = getOA2S().getCert(dummyAsset, currentATResponse);
+        if(assetResponse.getUsername()!= null){ say("returned username=" + assetResponse.getUsername());}
         say("X509Certs:");
         say(CertUtil.toPEM(assetResponse.getX509Certificates()));
 
@@ -245,7 +253,7 @@ public class OA2TestCommands extends TestCommands {
 
     protected void getRTHelp() {
         say("getrt: Get a new refresh token. You must have already called getat to have gotten an access token");
-        say("       first. This will print out ");
+        say("       first. This will print out a summary of the expiration time.");
     }
 
     protected void printTokens() {
@@ -276,12 +284,13 @@ public class OA2TestCommands extends TestCommands {
 
 
     protected void getATHelp() {
-        say("getat: Gets the access token and refresh token for a given grant. Your argument is the out put from");
-        say("       the getgrant call here.");
+        say("getat: Gets the access token and refresh token (if supported on the server) for a given grant. ");
+        say("       Your argument is the output from the setgrant call here.");
+        say("       A summary of the refresh token and its expiration is printed, if applicable.");
     }
 
-    protected void getGrantHelp() {
-        say("getgrant: The assumption is that you use geturi to get the correct authorization uri and have ");
+    protected void setGrantHelp() {
+        say("setgrant: The assumption is that you use geturi to get the correct authorization uri and have ");
         say("          logged in. Your browser *should* have a call back to your client. Cut and paste that");
         say("          as the argument to this call. This will return a string with the grant in it. You can use");
         say("          that to get an access token.");
