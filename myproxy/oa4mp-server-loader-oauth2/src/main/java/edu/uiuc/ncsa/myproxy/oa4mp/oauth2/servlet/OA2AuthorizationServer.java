@@ -3,7 +3,6 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.myproxy.MPSingleConnectionProvider;
 import edu.uiuc.ncsa.myproxy.MyProxyConnectable;
-import edu.uiuc.ncsa.myproxy.MyProxyLogon;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractAuthorizationServlet;
@@ -193,15 +192,7 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
         // do nix here in this protocol.
     }
 
-    public static class MyMyProxyLogon extends MyProxyLogon{
 
-        public String getPassphrase(){return passphrase;}
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName() + "[host=" + getHost() + ", port=" + getPort() + ", for username=" + getUsername() + "]";
-        }
-    }
 
     @Override
     protected void setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException {

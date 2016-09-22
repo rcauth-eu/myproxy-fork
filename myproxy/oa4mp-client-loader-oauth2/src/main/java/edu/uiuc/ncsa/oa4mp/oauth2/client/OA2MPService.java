@@ -18,8 +18,8 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.OA2Claims;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
+import edu.uiuc.ncsa.security.util.pkcs.PEMFormatUtil;
 import net.sf.json.JSONObject;
-import org.apache.commons.codec.binary.Base64;
 
 import java.net.URLEncoder;
 import java.security.KeyPair;
@@ -41,7 +41,7 @@ public class OA2MPService extends OA4MPService {
     public void preGetCert(Asset asset, Map parameters) {
         super.preGetCert(asset, parameters);
         OA2Asset a = (OA2Asset) asset;
-        parameters.put(ClientEnvironment.CERT_REQUEST_KEY, Base64.encodeBase64String(asset.getCertReq().getEncoded()));
+        parameters.put(ClientEnvironment.CERT_REQUEST_KEY, PEMFormatUtil.bytesToChunkedString(asset.getCertReq().getEncoded()));
         if (!parameters.containsKey(getEnvironment().getConstants().get(CALLBACK_URI_KEY))) {
             parameters.put(getEnvironment().getConstants().get(CALLBACK_URI_KEY), getEnvironment().getCallback().toString());
         }

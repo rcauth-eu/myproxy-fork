@@ -45,9 +45,5 @@ public class AbstractAuthorizationServletImpl extends AbstractAuthorizationServl
     @Override
     protected void setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException {
         createMPConnection(trans.getIdentifier(), username, password, trans.getLifetime());
-
-        if (hasMPConnection(trans.getIdentifier())) {
-            getMPConnection(trans.getIdentifier()).close();
-        }
     }
 }

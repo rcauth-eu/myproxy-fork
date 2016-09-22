@@ -121,19 +121,15 @@ abstract    protected ProtocolParameters parseRequest(HttpServletRequest request
 */
     protected ServiceTransaction getAndCheckTransaction(ProtocolParameters p) throws Throwable {
         String token = p.token;
-        say("checking timestamp");
         DateUtils.checkTimestamp(token);
         AuthorizationGrant grant = MyProxyDelegationServlet.getServiceEnvironment().getTokenForge().getAuthorizationGrant(token);
         checkTimestamp(grant.getToken());
         ServiceTransaction trans = MyProxyDelegationServlet.getServiceEnvironment().getTransactionStore().get(grant);
-        say("retrieving transaction (Y/n)=" + (trans != null));
         if (trans == null) {
             warn("Error: no delegation request found for " + token);
             throw new GeneralException("Error: no delegation request found.");
         }
-        say("checking client");
         checkClient(trans.getClient());
-        say("client ok");
         return trans;
     }
 

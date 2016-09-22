@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.servlet;
 
+import edu.uiuc.ncsa.myproxy.MyProxyLogon;
 import edu.uiuc.ncsa.myproxy.NoUsableMyProxyServerFoundException;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -308,5 +309,14 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         info("4.b. Redirect to callback " + cb + " ok, " + statusString);
     }
 
+    public static class MyMyProxyLogon extends MyProxyLogon {
+
+        public String getPassphrase(){return passphrase;}
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "[host=" + getHost() + ", port=" + getPort() + ", for username=" + getUsername() + "]";
+        }
+    }
     abstract protected void  setupMPConnection(ServiceTransaction trans, String username, String password) throws GeneralSecurityException ;
 }

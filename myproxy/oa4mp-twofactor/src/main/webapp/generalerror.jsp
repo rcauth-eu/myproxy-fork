@@ -14,7 +14,9 @@
     page in the web.xml file will catch any error and process it.
 --%>
 <%!
-    String mailto      = "alerts@cilogon.org";
+    // FIXME!!! Revert to alerts before deploy.
+    //String mailto      = "alerts@cilogon.org";
+    String mailto      = "gaynor@illinois.edu";
     String mailsubject = "Error caught by Tomcat on "; // + hostname
     String mailsmtp    = "smtp.ncsa.uiuc.edu";
 
