@@ -18,6 +18,8 @@ import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.apache.http.HttpStatus;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -98,17 +100,26 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String grantType = getFirstParameterValue(request, OA2Constants.GRANT_TYPE);
         if (grantType == null) {
             warn("Error servicing request. No grant type was given. Rejecting request.");
-            throw new GeneralException("Error: Could not service request");
+//            throw new GeneralException("Error: Could not service request");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    "Error servicing request. No grant type was given.",
+		    HttpStatus.SC_BAD_REQUEST);
         }
         OA2Client client = (OA2Client) getClient(request);
         checkClient(client);
 
         String rawSecret = getFirstParameterValue(request, CLIENT_SECRET);
         if (rawSecret == null) {
-            throw new GeneralException("Error: No secret. request refused.");
+//            throw new GeneralException("Error: No secret. request refused.");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    "Error: No secret. request refused.",
+		    HttpStatus.SC_UNAUTHORIZED);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            throw new GeneralException("Error: Secret is incorrect. request refused.");
+//            throw new GeneralException("Error: Secret is incorrect. request refused.");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    "Error: Secret is incorrect. request refused.",
+		    HttpStatus.SC_UNAUTHORIZED);
         }
 
 
