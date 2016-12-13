@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.net.URI;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -51,7 +52,7 @@ public class OA2ExceptionHandler implements ExceptionHandler {
         // no client_id, e.g.) then pass back the servlet exception and let the container handle it. At some point we might just
         // want to have a pretty page for this.
         if(t instanceof ServletException) {
-             response.setStatus(500);
+            response.setStatus(500);
             throw (ServletException)t;
         };
 
@@ -97,8 +98,9 @@ public class OA2ExceptionHandler implements ExceptionHandler {
     }
 
     protected void handleOA2Error(OA2RedirectableError oa2RedirectableError, HttpServletResponse response) throws IOException {
+	URI callback = oa2RedirectableError.getCallback();
         // Fixes OAUTH-174, better handling of errors on the server side, making it all spec. compliant.
-        if (oa2RedirectableError.getCallback() == null) {
+        if (callback == null) {
             // Except here, since there is no callback possible if it is not included in the first place.
             //    throw new IllegalStateException("No callback has been specified in the request. Cannot process error notification.");
             // Convert to a general error
@@ -112,11 +114,20 @@ public class OA2ExceptionHandler implements ExceptionHandler {
             // set this so that other components know a redirect occurred and can handle that themselves (usually by just returning).
             wrapper.setExceptionEncountered(true);
         }
-        String cb = oa2RedirectableError.getCallback().toString();
-        cb = cb + "?" + OA2Constants.ERROR + "=" + oa2RedirectableError.getError() + "&" +
-                URLEncoder.encode(OA2Constants.ERROR_DESCRIPTION, "UTF-8") + "=" +
-                URLEncoder.encode(oa2RedirectableError.getDescription(), "UTF-8") + "&" + OA2Constants.STATE + "=" +
-                URLEncoder.encode(oa2RedirectableError.getState(), "UTF-8");
+	String error = oa2RedirectableError.getError();
+	String descr = oa2RedirectableError.getDescription();
+	String state = oa2RedirectableError.getState();
+
+        String cb = callback.toString() + "?";
+	if (error != null && !error.isEmpty())
+	    cb = cb + OA2Constants.ERROR + "=" + error + "&";
+	if (descr != null && !descr.isEmpty())
+	    cb = cb + URLEncoder.encode(OA2Constants.ERROR_DESCRIPTION, "UTF-8") + "=" +
+		      URLEncoder.encode(descr, "UTF-8") + "&";
+	if (state != null && !state.isEmpty())
+	    cb = cb + OA2Constants.STATE + "=" +
+		      URLEncoder.encode(state, "UTF-8");
+	logger.info("Redirecting to "+cb);
 
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         response.sendRedirect(cb);
