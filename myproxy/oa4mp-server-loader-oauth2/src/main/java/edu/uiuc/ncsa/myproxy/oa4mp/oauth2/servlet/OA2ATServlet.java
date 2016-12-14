@@ -100,7 +100,6 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String grantType = getFirstParameterValue(request, OA2Constants.GRANT_TYPE);
         if (grantType == null) {
             warn("Error servicing request. No grant type was given. Rejecting request.");
-//            throw new GeneralException("Error: Could not service request");
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
 		    "Error servicing request. No grant type was given.",
 		    HttpStatus.SC_BAD_REQUEST);
@@ -110,16 +109,14 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
         String rawSecret = getFirstParameterValue(request, CLIENT_SECRET);
         if (rawSecret == null) {
-//            throw new GeneralException("Error: No secret. request refused.");
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
 		    "Error: No secret. request refused.",
-		    HttpStatus.SC_UNAUTHORIZED);
+		    HttpStatus.SC_FORBIDDEN);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-//            throw new GeneralException("Error: Secret is incorrect. request refused.");
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
 		    "Error: Secret is incorrect. request refused.",
-		    HttpStatus.SC_UNAUTHORIZED);
+		    HttpStatus.SC_FORBIDDEN);
         }
 
 
@@ -148,8 +145,10 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
 
     protected OA2ServiceTransaction getByRT(RefreshToken refreshToken) throws IOException {
-        if (refreshToken == null) {
-            throw new GeneralException("Error: null refresh token encountered.");
+        if (refreshToken == null || refreshToken.getToken() == null) {
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    "Error: null refresh token encountered.",
+		    HttpStatus.SC_BAD_REQUEST);
         }
         RefreshTokenStore rts = (RefreshTokenStore) getTransactionStore();
         return rts.get(refreshToken);
@@ -200,22 +199,38 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         OA2ServiceTransaction transaction = (OA2ServiceTransaction) transactionStore.get(basicIdentifier);
         if (transaction == null) {
             // Then this request does not correspond to an previous one and must be rejected asap.
-            throw new OA2RedirectableError(OA2Errors.ACCESS_DENIED,
+//            throw new OA2RedirectableError(OA2Errors.ACCESS_DENIED,
+//                    "No pending transaction found",
+//                    atResponse.getParameters().get(OA2Constants.STATE),
+//                    atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
+            throw new OA2GeneralError(OA2Errors.ACCESS_DENIED,
                     "No pending transaction found",
-                    atResponse.getParameters().get(OA2Constants.STATE),
-                    atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
+		    HttpStatus.SC_BAD_REQUEST);
         }
         if (!transaction.isAuthGrantValid()) {
             String msg = "Error: Attempt to use invalid authorization code.  Request rejected.";
             warn(msg);
-            throw new GeneralException(msg);
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    msg,
+		    HttpStatus.SC_FORBIDDEN);
         }
 
-        URI uri = URI.create(atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
+	String redirect_uri = atResponse.getParameters().get(OA2Constants.REDIRECT_URI);
+	if (redirect_uri == null || redirect_uri.isEmpty()) {
+	    String msg = "Error: missing "+OA2Constants.REDIRECT_URI+" parameter in request";
+	    warn(msg);
+	    throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    msg,
+		    HttpStatus.SC_BAD_REQUEST);
+	}
+        URI uri = URI.create(redirect_uri);
+
         if (!transaction.getCallback().equals(uri)) {
             String msg = "Error: Attempt to use alternate redirect uri rejected.";
             warn(msg);
-            throw new GeneralException(msg);
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    msg,
+		    HttpStatus.SC_FORBIDDEN);
 
         }
         /* Now we have to determine which scopes to return
